@@ -119,13 +119,14 @@ class PluginsManager(object):
 
 class Matcher(object):
     """This allows us to map the same regex to multiple handlers."""
-    def __init__(self, regex):
+    def __init__(self, regex, **kwargs):
         self.regex = regex
+        self.attributes = kwargs
 
 
-def get_wrapper(wrapper_type, regexp, flags=0):
+def get_wrapper(wrapper_type, regexp, flags=0, **kwargs):
     def wrapper(func):
-        m = Matcher(re.compile(regexp, flags))
+        m = Matcher(re.compile(regexp, flags), **kwargs)
         PluginsManager.commands[wrapper_type][m] = func
         logger.info(
             'registered %s plugin "%s" to "%s"',
@@ -135,12 +136,12 @@ def get_wrapper(wrapper_type, regexp, flags=0):
     return wrapper
 
 
-def respond_to(regexp, flags=0):
-    return get_wrapper('respond_to', regexp, flags)
+def respond_to(regexp, flags=0, **kwargs):
+    return get_wrapper('respond_to', regexp, **kwargs)
 
 
-def listen_to(regexp, flags=0):
-    return get_wrapper('listen_to', regexp, flags)
+def listen_to(regexp, flags=0, **kwargs):
+    return get_wrapper('listen_to', regexp, flags, **kwargs)
 
 
 def at_start():
