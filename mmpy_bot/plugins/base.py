@@ -25,6 +25,7 @@ class Plugin(ABC):
 
     def __init__(self):
         self.driver: Optional[Driver] = None
+        self.settings: Optional[Settings] = None
         self.message_listeners: Dict[
             re.Pattern, Sequence[MessageFunction]
         ] = defaultdict(list)
@@ -39,6 +40,7 @@ class Plugin(ABC):
 
     def initialize(self, driver: Driver, settings: Optional[Settings] = None):
         self.driver = driver
+        self.settings = settings
 
         # Register listeners for any listener functions we might have
         for attribute in dir(self):
