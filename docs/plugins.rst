@@ -172,8 +172,9 @@ the `ExamplePlugin` to see what it looks like!
 Custom help messages
 --------------------
 
-`mmpy_bot` defaults to responding to `@botname help` or `help` in a direct message.
-If you wish to customize the way help information is displayed you can:
+`mmpy_bot` defaults to responding to `@botname help` or `help` in a direct
+message. If you wish to customize the way help information is displayed you
+can:
 
 .. code-block:: python
 
@@ -184,8 +185,8 @@ If you wish to customize the way help information is displayed you can:
             help_elements = self.get_help()
             return f"This is all the help I can share {help_elements}"
 
-You can then specify how the bot should react and where the help
-text should be displayed by using:
+You can then specify how the bot should react and where the help text should
+be displayed by using:
 
 .. code-block:: python
 
