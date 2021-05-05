@@ -169,6 +169,59 @@ the `ExamplePlugin` to see what it looks like!
         )
         self.driver.reply_to(message, response)
 
+Custom help messages
+--------------------
+
+`mmpy_bot` defaults to responding to `@botname help` or `help` in a direct message.
+If you wish to customize the way help information is displayed you can:
+
+.. code-block:: python
+
+    from mmpy_bot.plugins import PluginManager
+
+    class MyPluginManager(PluginManager):
+        def get_help_string(self):
+            help_elements = self.get_help()
+            return f"This is all the help I can share {help_elements}"
+
+You can then specify how the bot should react and where the help
+text should be displayed by using:
+
+.. code-block:: python
+
+    from mmpy_bot import Bot, Settings
+    from my_plugin import MyPlugin
+
+    plugins=[
+        MyPlugin()
+    ]
+
+    bot = Bot(
+        settings=Settings(
+            ...,
+        ),
+        plugins=MyPluginManager(  # Add your PluginManager here
+            plugins,
+            help_trigger=True  # bot reacts to "@botname help"
+            help_trigger_bang=True  # bot reacts to "!help"
+            direct_help=True  # help is sent in a private/direct message
+        ]),
+    )
+    bot.run()
+
+The options ``help_trigger``, ``help_trigger_bang`` and ``direct_help`` are
+also available for every ``Plugin()`` individually.
+
+.. code-block:: python
+
+    plugins=[
+        MyPlugin(
+            help_trigger=True  # bot reacts to "@botname help"
+            help_trigger_bang=True  # bot reacts to "!help"
+            direct_help=True  # help is sent in a private/direct message
+        )
+    ]
+
 File upload
 -----------
 
