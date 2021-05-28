@@ -5,7 +5,7 @@ import re
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, ItemsView, List, Optional, Sequence
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
@@ -171,7 +171,12 @@ class PluginManager:
                                 f" type {type(function)}."
                             )
 
-    def _generate_plugin_help(self, plug_help: List[PluginHelp], help_type: str, items):
+    def _generate_plugin_help(
+        self,
+        plug_help: List[PluginHelp],
+        help_type: str,
+        items: ItemsView[re.Pattern, List[Function]],
+    ):
         for matcher, functions in items:
             for function in functions:
                 doc_full = function.function.__doc__
