@@ -50,36 +50,10 @@ class Plugin(ABC):
         self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
 
-        self.message_listeners: Dict[re.Pattern, List[MessageFunction]] = defaultdict(
-            list
-        )
-        self.webhook_listeners: Dict[re.Pattern, List[WebHookFunction]] = defaultdict(
-            list
-        )
-
     def initialize(self, driver: Driver, settings: Optional[Settings] = None):
         self.driver = driver
         self.settings = settings
         self.call_function = caller(driver)
-
-        # Register listeners for any listener functions we might have
-        for attribute in dir(self):
-            attribute = getattr(self, attribute)
-            if isinstance(attribute, Function):
-                # Register this function and any potential siblings
-                for function in [attribute] + attribute.siblings:
-                    function.plugin = self
-                    if isinstance(function, MessageFunction):
-                        self.message_listeners[function.matcher].append(function)
-                    elif isinstance(function, WebHookFunction):
-                        self.webhook_listeners[function.matcher].append(function)
-                    else:
-                        raise TypeError(
-                            f"{self.__class__.__name__} has a function of unsupported"
-                            f" type {type(function)}."
-                        )
-
-        return self
 
     def on_start(self):
         """Will be called after initialization.
@@ -147,10 +121,12 @@ class PluginManager:
         self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
 
-        self.message_listeners: Dict[
-            re.Pattern, Sequence[MessageFunction]
-        ] = defaultdict(list)
-
+        self.message_listeners: Dict[re.Pattern, List[MessageFunction]] = defaultdict(
+            list
+        )
+        self.webhook_listeners: Dict[re.Pattern, List[WebHookFunction]] = defaultdict(
+            list
+        )
 
     def __iter__(self):
         return iter(self.plugins)
@@ -174,6 +150,26 @@ class PluginManager:
 
         for plugin in self.plugins:
             plugin.initialize(self.driver, settings)
+
+            # Register listeners for any listener functions in the plugin
+            for attribute in dir(plugin):
+                attribute = getattr(plugin, attribute)
+                if isinstance(attribute, Function):
+                    # Register this function and any potential siblings
+                    for function in [attribute] + attribute.siblings:
+                        # Plugin message/webhook handlers can be decorated multiple times
+                        # resulting in multiple siblings that do not have plugin defined
+                        # or where the relationship with the parent plugin is incorrect
+                        function.plugin = plugin
+                        if isinstance(function, MessageFunction):
+                            self.message_listeners[function.matcher].append(function)
+                        elif isinstance(function, WebHookFunction):
+                            self.webhook_listeners[function.matcher].append(function)
+                        else:
+                            raise TypeError(
+                                f"{self.__class__.__name__} has a function of unsupported"
+                                f" type {type(function)}."
+                            )
 
     def _generate_plugin_help(self, plug_help: List[PluginHelp], help_type: str, items):
         for matcher, functions in items:
