@@ -43,7 +43,8 @@ class Plugin(ABC):
     """
 
     def __init__(
-        self, direct_help: bool = False,
+        self,
+        direct_help: bool = False,
     ):
         self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
@@ -113,7 +114,9 @@ class PluginManager:
     """
 
     def __init__(
-        self, plugins: Sequence[Plugin], direct_help: bool = True,
+        self,
+        plugins: Sequence[Plugin],
+        direct_help: bool = True,
     ):
         self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
