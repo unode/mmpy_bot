@@ -211,15 +211,8 @@ class PluginManager:
     def get_help(self):
         response: List[PluginHelp] = []
 
-        for plugin in self.plugins:
-            self._generate_plugin_help(
-                response, "message", plugin.message_listeners.items()
-            )
-
-            if len(plugin.webhook_listeners) > 0:
-                self._generate_plugin_help(
-                    response, "webhook", plugin.webhook_listeners.items()
-                )
+        self._generate_plugin_help(response, "message", self.message_listeners.items())
+        self._generate_plugin_help(response, "webhook", self.webhook_listeners.items())
 
         return response
 
