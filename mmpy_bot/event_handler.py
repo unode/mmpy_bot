@@ -3,7 +3,6 @@ import json
 import logging
 import queue
 import re
-from collections import defaultdict
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.plugins import PluginManager
@@ -30,20 +29,6 @@ class EventHandler(object):
         self.plug_manager = plugins
 
         self._name_matcher = re.compile(rf"^@?{self.driver.username}\:?\s?")
-
-        # Collect the listeners from all plugins
-        self.message_listeners = defaultdict(list)
-        self.webhook_listeners = defaultdict(list)
-
-        for plugin in self.plug_manager:
-            for matcher, functions in plugin.message_listeners.items():
-                self.message_listeners[matcher].extend(functions)
-            for matcher, functions in plugin.webhook_listeners.items():
-                self.webhook_listeners[matcher].extend(functions)
-
-        # PluginManager also has listeners for "help"
-        for matcher, functions in self.plug_manager.message_listeners.items():
-            self.message_listeners[matcher].extend(functions)
 
     def start(self):
         # This is blocking, will loop forever
@@ -91,7 +76,7 @@ class EventHandler(object):
         # Find all the listeners that match this message, and have their plugins handle
         # the rest.
         tasks = []
-        for matcher, functions in self.message_listeners.items():
+        for matcher, functions in self.plug_manager.message_listeners.items():
             match = matcher.match(message.text)
             if match:
                 groups = list([group for group in match.groups() if group != ""])
@@ -111,7 +96,7 @@ class EventHandler(object):
         # Find all the listeners that match this webhook id, and have their plugins
         # handle the rest.
         tasks = []
-        for matcher, functions in self.webhook_listeners.items():
+        for matcher, functions in self.plug_manager.webhook_listeners.items():
             match = matcher.match(event.webhook_id)
             if match:
                 for function in functions:
