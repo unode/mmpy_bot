@@ -43,12 +43,10 @@ class Plugin(ABC):
     """
 
     def __init__(
-        self,
-        help_trigger: bool = False,
-        help_trigger_bang: bool = False,
-        direct_help: bool = False,
+        self, direct_help: bool = False,
     ):
         self.driver: Optional[Driver] = None
+        self.settings: Optional[Settings] = None
         self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
 
@@ -59,20 +57,9 @@ class Plugin(ABC):
             list
         )
 
-        # We have to register the help function listeners at runtime to prevent the
-        # Function object from being shared across different Plugins.
-        # This code is a bit hairy because the function signature of an
-        # instance is (message) not (self, message) causing failures later
-        if help_trigger:
-            self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
-        if help_trigger_bang:
-            if not help_trigger:
-                self.help = listen_to("^!help$")(Plugin.help)
-            else:
-                self.help = listen_to("^!help$")(self.help)
-
     def initialize(self, driver: Driver, settings: Optional[Settings] = None):
         self.driver = driver
+        self.settings = settings
         self.call_function = caller(driver)
 
         # Register listeners for any listener functions we might have
@@ -152,13 +139,10 @@ class PluginManager:
     """
 
     def __init__(
-        self,
-        plugins: Sequence[Plugin],
-        help_trigger: bool = True,
-        help_trigger_bang: bool = False,
-        direct_help: bool = True,
+        self, plugins: Sequence[Plugin], direct_help: bool = True,
     ):
         self.driver: Optional[Driver] = None
+        self.settings: Optional[Settings] = None
         self.plugins: Sequence[Plugin] = plugins
         self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
@@ -167,22 +151,22 @@ class PluginManager:
             re.Pattern, Sequence[MessageFunction]
         ] = defaultdict(list)
 
-        # This code is a bit hairy because the function signature of an
-        # instance is (message) not (self, message) causing failures later
-        if help_trigger:
-            self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
-        if help_trigger_bang:
-            if not help_trigger:
-                self.help = listen_to("^!help$")(Plugin.help)
-            else:
-                self.help = listen_to("^!help$")(self.help)
 
     def __iter__(self):
         return iter(self.plugins)
 
-    def initialize(self, driver: Driver, settings: Optional[Settings] = None):
+    def initialize(self, driver: Driver, settings: Settings):
         self.driver = driver
+        self.settings = settings
         self.call_function = caller(driver)
+
+        if self.settings.RESPOND_MENTION_HELP:
+            self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
+        if self.settings.RESPOND_CHANNEL_HELP:
+            help_target = (
+                self.help if self.settings.RESPOND_MENTION_HELP else Plugin.help
+            )
+            self.help = listen_to("^!help$")(help_target)
 
         # Add Plugin manager help to message listeners
         self.help.plugin = self
