@@ -197,7 +197,7 @@ class PluginManager:
                 plug_help.append(
                     PluginHelp(
                         help_type=help_type,
-                        location=self.__class__.__name__,
+                        location=function.plugin.__class__.__name__,
                         function=function,
                         pattern=matcher.pattern,
                         doc_header=doc_header,
