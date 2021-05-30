@@ -10,6 +10,7 @@ from typing import Callable, Dict, ItemsView, List, Optional, Sequence
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
 from mmpy_bot.settings import Settings
+from mmpy_bot.utils import spaces
 from mmpy_bot.wrappers import EventWrapper, Message
 
 log = logging.getLogger("mmpy.plugin_base")
@@ -207,23 +208,39 @@ class PluginManager:
 
     def get_help_string(self) -> str:
         def custom_sort(rec):
-            return (rec.help_type, rec.pattern.lstrip("^[(-"))
+            return (
+                rec.annotations.get("category", ""),  # No categories first
+                rec.help_type,
+                rec.pattern.lstrip("^[(-"),
+            )
 
         string = "### The following functions have been registered:\n\n"
         string += "###### `(*)` require the use of `@botname`, "
         string += "`(+)` can only be used in direct message\n"
+        old_category = None
+        pad = ""
         for h in sorted(self.get_help(), key=custom_sort):
+            # If categories are defined, group functions accordingly
+            category = h.annotations.get("category")
+            if category != old_category:
+                pad = spaces(4)
+                old_category = category
+                category = "uncategorized" if category is None else category
+                string += f"Under category `{category}` I understand:\n"
+
             cmd = h.annotations.get("syntax", h.pattern)
             direct = "`(*)`" if h.direct else ""
             mention = "`(+)`" if h.mention else ""
 
             if h.help_type == "webhook":
-                string += f"- `{cmd}` {direct} {mention} - (webhook) {h.doc_header}\n"
+                string += f"{pad}- `{cmd}` {direct} {mention} - (webhook) {h.function_header}\n"
             else:
-                if not h.doc_header:
-                    string += f"- `{cmd}` {direct} {mention}\n"
+                if not h.function_header:
+                    string += f"{pad}- `{cmd}` {direct} {mention}\n"
                 else:
-                    string += f"- `{cmd}` {direct} {mention} - {h.doc_header}\n"
+                    string += (
+                        f"{pad}- `{cmd}` {direct} {mention} - {h.function_header}\n"
+                    )
 
         return string
 
