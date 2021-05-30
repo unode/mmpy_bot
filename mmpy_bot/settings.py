@@ -57,8 +57,6 @@ class Settings:
     DEBUG: bool = False
     LOG_FILE: Optional[str] = None
     LOG_FORMAT: str = "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
-    # Respond to direct message "help" or channel message "@bot help"
-    RESPOND_MENTION_HELP: bool = True
     # Respond to channel message "!help" (without @bot)
     RESPOND_CHANNEL_HELP: bool = False
 
