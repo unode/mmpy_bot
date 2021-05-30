@@ -10,7 +10,6 @@ from typing import Callable, Dict, ItemsView, List, Optional, Sequence
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
 from mmpy_bot.settings import Settings
-from mmpy_bot.utils import spaces
 from mmpy_bot.wrappers import EventWrapper, Message
 
 log = logging.getLogger("mmpy.plugin_base")
@@ -45,16 +44,19 @@ class Plugin(ABC):
 
     def __init__(
         self,
-        direct_help: bool = False,
     ):
         self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
-        self.direct_help: bool = direct_help
-        self.call_function: Optional[Callable] = None
         self.docstring = self.__doc__ if self.__doc__ != Plugin.__doc__ else None
 
-    def initialize(self, driver: Driver, settings: Optional[Settings] = None):
+    def initialize(
+        self,
+        driver: Driver,
+        manager: PluginManager,
+        settings: Optional[Settings] = None,
+    ):
         self.driver = driver
+        self.manager = manager
         self.settings = settings
         self.call_function = caller(driver)
 
@@ -75,8 +77,71 @@ class Plugin(ABC):
         return self
 
 
+class HelpPlugin(Plugin):
+    """Provide a `help` function that lists functions provided by all plygins"""
+
+    def __init__(
+        self,
+        direct_help: bool = True,
+    ):
+        super().__init__()
+        self.direct_help: bool = direct_help
+
+    def initialize(
+        self,
+        driver: Driver,
+        manager: PluginManager,
+        settings: Optional[Settings] = None,
+    ):
+        super().initialize(driver, manager, settings)
+
+        if self.settings.RESPOND_CHANNEL_HELP:
+            self.help = listen_to("^!help$")(self.help)
+
+    def get_help_string(self) -> str:
+        def custom_sort(rec):
+            return (
+                rec.annotations.get("category", ""),  # No categories first
+                rec.help_type,
+                rec.pattern.lstrip("^[(-"),
+            )
+
+        string = "### The following functions have been registered:\n\n"
+        string += "###### `(*)` require the use of `@botname`, "
+        string += "`(+)` can only be used in direct message\n"
+        old_category = None
+        for h in sorted(self.manager.get_help(), key=custom_sort):
+            # If categories are defined, group functions accordingly
+            category = h.annotations.get("category")
+            if category != old_category:
+                old_category = category
+                category = "uncategorized" if category is None else category
+                string += f"Category `{category}`:\n"
+
+            cmd = h.annotations.get("syntax", h.pattern)
+            direct = "`(*)`" if h.direct else ""
+            mention = "`(+)`" if h.mention else ""
+
+            if h.help_type == "webhook":
+                string += (
+                    f"- `{cmd}` {direct} {mention} - (webhook) {h.function_header}\n"
+                )
+            else:
+                if not h.function_header:
+                    string += f"- `{cmd}` {direct} {mention}\n"
+                else:
+                    string += f"- `{cmd}` {direct} {mention} - {h.function_header}\n"
+
+        return string
+
+    @listen_to("^help$", needs_mention=True)
+    async def help(self, message: Message):
+        """Shows this help information"""
+        self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)
+
+
 @dataclass
-class PluginHelp:
+class PluginHelpInfo:
     help_type: str
     location: str
     function: str
@@ -101,12 +166,10 @@ class PluginManager:
     def __init__(
         self,
         plugins: Sequence[Plugin],
-        direct_help: bool = True,
     ):
         self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
         self.plugins: Sequence[Plugin] = plugins
-        self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
 
         self.message_listeners: Dict[re.Pattern, List[MessageFunction]] = defaultdict(
@@ -119,21 +182,9 @@ class PluginManager:
     def __iter__(self):
         return iter(self.plugins)
 
-    def initialize(self, driver: Driver, settings: Settings):
-        self.driver = driver
-        self.settings = settings
-        self.call_function = caller(driver)
-
-        self.help = listen_to("^help$", needs_mention=True)(PluginManager.help)
-        if self.settings.RESPOND_CHANNEL_HELP:
-            self.help = listen_to("^!help$")(self.help)
-
-        # Add Plugin manager help to message listeners
-        self.help.plugin = self
-        self.message_listeners[self.help.matcher].append(self.help)
-
+    def initialize_manager(self, driver: Driver, settings: Settings):
         for plugin in self.plugins:
-            plugin.initialize(self.driver, settings)
+            plugin.initialize(driver, self, settings)
 
             # Register listeners for any listener functions in the plugin
             for attribute in dir(plugin):
@@ -161,13 +212,13 @@ class PluginManager:
 
     def _generate_plugin_help(
         self,
-        plug_help: List[PluginHelp],
+        plug_help: List[PluginHelpInfo],
         help_type: str,
         items: ItemsView[re.Pattern, List[Function]],
     ):
-        """Build PluginHelp objects from plugin and function information
+        """Build PluginHelpInfo objects from plugin and function information
 
-        Returns one PluginHelp instance for every listener (message or webhook)
+        Returns one PluginHelpInfo instance for every listener (message or webhook)
         """
         for matcher, functions in items:
             for function in functions:
@@ -183,7 +234,7 @@ class PluginManager:
                     raise NotImplementedError(f"Unknown help type: '{help_type}'")
 
                 plug_help.append(
-                    PluginHelp(
+                    PluginHelpInfo(
                         help_type=help_type,
                         location=function.plugin.__class__.__name__,
                         function=function,
@@ -198,52 +249,10 @@ class PluginManager:
                     )
                 )
 
-    def get_help(self) -> List[PluginHelp]:
-        response: List[PluginHelp] = []
+    def get_help(self) -> List[PluginHelpInfo]:
+        response: List[PluginHelpInfo] = []
 
         self._generate_plugin_help(response, "message", self.message_listeners.items())
         self._generate_plugin_help(response, "webhook", self.webhook_listeners.items())
 
         return response
-
-    def get_help_string(self) -> str:
-        def custom_sort(rec):
-            return (
-                rec.annotations.get("category", ""),  # No categories first
-                rec.help_type,
-                rec.pattern.lstrip("^[(-"),
-            )
-
-        string = "### The following functions have been registered:\n\n"
-        string += "###### `(*)` require the use of `@botname`, "
-        string += "`(+)` can only be used in direct message\n"
-        old_category = None
-        pad = ""
-        for h in sorted(self.get_help(), key=custom_sort):
-            # If categories are defined, group functions accordingly
-            category = h.annotations.get("category")
-            if category != old_category:
-                pad = spaces(4)
-                old_category = category
-                category = "uncategorized" if category is None else category
-                string += f"Under category `{category}` I understand:\n"
-
-            cmd = h.annotations.get("syntax", h.pattern)
-            direct = "`(*)`" if h.direct else ""
-            mention = "`(+)`" if h.mention else ""
-
-            if h.help_type == "webhook":
-                string += f"{pad}- `{cmd}` {direct} {mention} - (webhook) {h.function_header}\n"
-            else:
-                if not h.function_header:
-                    string += f"{pad}- `{cmd}` {direct} {mention}\n"
-                else:
-                    string += (
-                        f"{pad}- `{cmd}` {direct} {mention} - {h.function_header}\n"
-                    )
-
-        return string
-
-    async def help(self, message: Message):
-        """Prints the list of functions registered on every active plugin."""
-        self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)

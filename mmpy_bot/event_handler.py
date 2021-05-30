@@ -18,7 +18,7 @@ class EventHandler(object):
         self,
         driver: Driver,
         settings: Settings,
-        plugins: PluginManager,
+        manager: PluginManager,
         ignore_own_messages=True,
     ):
         """The EventHandler class takes care of the connection to mattermost and calling
@@ -26,7 +26,7 @@ class EventHandler(object):
         self.driver = driver
         self.settings = settings
         self.ignore_own_messages = ignore_own_messages
-        self.plug_manager = plugins
+        self.manager = manager
 
         self._name_matcher = re.compile(rf"^@?{self.driver.username}\:?\s?")
 
@@ -76,7 +76,7 @@ class EventHandler(object):
         # Find all the listeners that match this message, and have their plugins handle
         # the rest.
         tasks = []
-        for matcher, functions in self.plug_manager.message_listeners.items():
+        for matcher, functions in self.manager.message_listeners.items():
             match = matcher.match(message.text)
             if match:
                 groups = list([group for group in match.groups() if group != ""])
@@ -96,7 +96,7 @@ class EventHandler(object):
         # Find all the listeners that match this webhook id, and have their plugins
         # handle the rest.
         tasks = []
-        for matcher, functions in self.plug_manager.webhook_listeners.items():
+        for matcher, functions in self.manager.webhook_listeners.items():
             match = matcher.match(event.webhook_id)
             if match:
                 for function in functions:
