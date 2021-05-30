@@ -45,13 +45,6 @@ class Function(ABC):
         def __call__(self, *args):
             pass
 
-    def get_help_string(self):
-        string = f"`{self.matcher.pattern}`:\n"
-        # Add a docstring
-        doc = self.docstring or "No description provided."
-        string += f"{spaces(8)}{doc}\n"
-        return string
-
 
 class MessageFunction(Function):
     """Wrapper around a Plugin class method that should respond to certain Mattermost
@@ -82,6 +75,8 @@ class MessageFunction(Function):
         else:
             self.allowed_channels = [channel.lower() for channel in allowed_channels]
 
+        self.docstring = self.function.__doc__ or ""
+
         if self.is_click_function:
             _function = self.function.callback
             if asyncio.iscoroutinefunction(_function):
@@ -94,12 +89,9 @@ class MessageFunction(Function):
                 info_name=self.matcher.pattern.strip("^").split(" (.*)?")[0],
             ) as ctx:
                 # Get click help string and do some extra formatting
-                self.docstring = self.function.get_help(ctx).replace(
-                    "\n", f"\n{spaces(8)}"
-                )
+                self.docstring += f"\n\n{self.function.get_help(ctx)}"
         else:
             _function = self.function
-            self.docstring = self.function.__doc__
 
         self.name = _function.__qualname__
 
