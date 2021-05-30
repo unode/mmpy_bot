@@ -5,7 +5,7 @@ import inspect
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional, Sequence
+from typing import Callable, Optional, Sequence
 
 import click
 
@@ -21,7 +21,7 @@ class Function(ABC):
         self,
         function: Callable,
         matcher: re.Pattern,
-        annotations: Optional[Dict] = None,
+        **annotations,
     ):
         # If another Function was passed, keep track of all these siblings.
         # We later use them to register not only the outermost Function, but also any
@@ -34,7 +34,7 @@ class Function(ABC):
         self.function = function
         self.is_coroutine = asyncio.iscoroutinefunction(function)
         self.matcher = matcher
-        self.annotations = annotations or {}
+        self.annotations = annotations
 
         # To be set in the child class or from the parent plugin
         self.plugin = None
@@ -184,7 +184,7 @@ def listen_to(
     needs_mention=False,
     allowed_users=None,
     allowed_channels=None,
-    annotations=None,
+    **annotations,
 ):
     """Wrap the given function in a MessageFunction class so we can register some
     properties."""
@@ -218,7 +218,7 @@ def listen_to(
             needs_mention=needs_mention,
             allowed_users=allowed_users,
             allowed_channels=allowed_channels,
-            annotations=annotations,
+            **annotations,
         )
 
     return wrapped_func
@@ -271,6 +271,7 @@ class WebHookFunction(Function):
 
 def listen_webhook(
     regexp: str,
+    **annotations,
 ):
     """Wrap the given function in a WebHookFunction class with the specified regexp."""
 
@@ -279,6 +280,7 @@ def listen_webhook(
         return WebHookFunction(
             func,
             matcher=pattern,
+            **annotations,
         )
 
     return wrapped_func
