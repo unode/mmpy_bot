@@ -5,7 +5,13 @@ from typing import List, Optional, Union
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.event_handler import EventHandler
-from mmpy_bot.plugins import ExamplePlugin, Plugin, PluginManager, WebHookExample
+from mmpy_bot.plugins import (
+    ExamplePlugin,
+    HelpPlugin,
+    Plugin,
+    PluginManager,
+    WebHookExample,
+)
 from mmpy_bot.settings import Settings
 from mmpy_bot.webhook_server import WebHookServer
 
@@ -24,14 +30,16 @@ class Bot:
         settings: Optional[Settings] = None,
         plugins: Optional[Union[List[Plugin], PluginManager]] = None,
     ):
-        self.plugins: PluginManager
+        self.manager: PluginManager
 
         if plugins is None:
-            self.plugins = PluginManager([ExamplePlugin(), WebHookExample()])
+            self.manager = PluginManager(
+                [HelpPlugin(), ExamplePlugin(), WebHookExample()]
+            )
         elif isinstance(plugins, list):
-            self.plugins = PluginManager(plugins)
+            self.manager = PluginManager(plugins)
         else:
-            self.plugins = plugins
+            self.manager = plugins
 
         # Use default settings if none were specified.
         self.settings = settings or Settings()
@@ -61,9 +69,9 @@ class Bot:
             }
         )
         self.driver.login()
-        self.plugins.initialize(self.driver, self.settings)
+        self.manager.initialize_manager(self.driver, self.settings)
         self.event_handler = EventHandler(
-            self.driver, settings=self.settings, plugins=self.plugins
+            self.driver, settings=self.settings, manager=self.manager
         )
         self.webhook_server = None
 
@@ -97,7 +105,7 @@ class Bot:
             if self.settings.WEBHOOK_HOST_ENABLED:
                 self.driver.threadpool.start_webhook_server_thread(self.webhook_server)
 
-            for plugin in self.plugins:
+            for plugin in self.manager:
                 plugin.on_start()
 
             # Start listening for events
@@ -117,7 +125,7 @@ class Bot:
 
         log.info("Stopping bot.")
         # Shutdown the running plugins
-        for plugin in self.plugins:
+        for plugin in self.manager:
             plugin.on_stop()
         # Stop the threadpool
         self.driver.threadpool.stop()
