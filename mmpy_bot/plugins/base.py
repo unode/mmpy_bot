@@ -50,6 +50,7 @@ class Plugin(ABC):
         self.settings: Optional[Settings] = None
         self.direct_help: bool = direct_help
         self.call_function: Optional[Callable] = None
+        self.docstring = self.__doc__ if self.__doc__ != Plugin.__doc__ else None
 
     def initialize(self, driver: Driver, settings: Optional[Settings] = None):
         self.driver = driver
@@ -72,25 +73,6 @@ class Plugin(ABC):
         log.debug(f"Plugin {self.__class__.__name__} stopped!")
         return self
 
-    def get_help_string(self):
-        string = f"Plugin {self.__class__.__name__} has the following functions:\n"
-        string += "----\n"
-        for functions in self.message_listeners.values():
-            for function in functions:
-                string += f"- {function.get_help_string()}"
-            string += "----\n"
-        if len(self.webhook_listeners) > 0:
-            string += "### Registered webhooks:\n"
-            for functions in self.webhook_listeners.values():
-                for function in functions:
-                    string += f"- {function.get_help_string()}"
-
-        return string
-
-    async def help(self, message: Message):
-        """Prints the list of functions registered on every active plugin."""
-        self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)
-
 
 @dataclass
 class PluginHelp:
@@ -98,8 +80,10 @@ class PluginHelp:
     location: str
     function: str
     pattern: str
-    doc_header: str
-    doc_full: str
+    plugin_header: str
+    plugin_full: str
+    function_header: str
+    function_full: str
     direct: bool
     mention: bool
     annotations: Dict
@@ -139,7 +123,7 @@ class PluginManager:
         self.settings = settings
         self.call_function = caller(driver)
 
-        self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
+        self.help = listen_to("^help$", needs_mention=True)(PluginManager.help)
         if self.settings.RESPOND_CHANNEL_HELP:
             self.help = listen_to("^!help$")(self.help)
 
@@ -170,20 +154,24 @@ class PluginManager:
                                 f" type {type(function)}."
                             )
 
+    def _split_docstring(self, doc):
+        """Split docstring into first line (header) and full body"""
+        return (doc.split("\n", 1)[0], doc) if doc is not None else ("", "")
+
     def _generate_plugin_help(
         self,
         plug_help: List[PluginHelp],
         help_type: str,
         items: ItemsView[re.Pattern, List[Function]],
     ):
+        """Build PluginHelp objects from plugin and function information
+
+        Returns one PluginHelp instance for every listener (message or webhook)
+        """
         for matcher, functions in items:
             for function in functions:
-                doc_full = function.function.__doc__
-                if doc_full is None:
-                    doc_header = ""
-                    doc_full = ""
-                else:
-                    doc_header = function.function.__doc__.split("\n", 1)[0]
+                plug_head, plug_full = self._split_docstring(function.plugin.docstring)
+                func_head, func_full = self._split_docstring(function.docstring)
 
                 if help_type == "message":
                     direct = function.direct_only
@@ -199,15 +187,17 @@ class PluginManager:
                         location=function.plugin.__class__.__name__,
                         function=function,
                         pattern=matcher.pattern,
-                        doc_header=doc_header,
-                        doc_full=doc_full,
+                        plugin_header=plug_head,
+                        plugin_full=plug_full,
+                        function_header=func_head,
+                        function_full=func_full,
                         direct=direct,
                         mention=mention,
                         annotations=function.annotations,
                     )
                 )
 
-    def get_help(self):
+    def get_help(self) -> List[PluginHelp]:
         response: List[PluginHelp] = []
 
         self._generate_plugin_help(response, "message", self.message_listeners.items())
@@ -215,7 +205,7 @@ class PluginManager:
 
         return response
 
-    def get_help_string(self):
+    def get_help_string(self) -> str:
         def custom_sort(rec):
             return (rec.help_type, rec.pattern.lstrip("^[(-"))
 
@@ -236,3 +226,7 @@ class PluginManager:
                     string += f"- `{cmd}` {direct} {mention} - {h.doc_header}\n"
 
         return string
+
+    async def help(self, message: Message):
+        """Prints the list of functions registered on every active plugin."""
+        self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)
