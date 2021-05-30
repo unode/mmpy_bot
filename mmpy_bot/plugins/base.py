@@ -139,13 +139,9 @@ class PluginManager:
         self.settings = settings
         self.call_function = caller(driver)
 
-        if self.settings.RESPOND_MENTION_HELP:
-            self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
+        self.help = listen_to("^help$", needs_mention=True)(Plugin.help)
         if self.settings.RESPOND_CHANNEL_HELP:
-            help_target = (
-                self.help if self.settings.RESPOND_MENTION_HELP else Plugin.help
-            )
-            self.help = listen_to("^!help$")(help_target)
+            self.help = listen_to("^!help$")(self.help)
 
         # Add Plugin manager help to message listeners
         self.help.plugin = self
@@ -161,7 +157,7 @@ class PluginManager:
                     # Register this function and any potential siblings
                     for function in [attribute] + attribute.siblings:
                         # Plugin message/webhook handlers can be decorated multiple times
-                        # resulting in multiple siblings that do not have plugin defined
+                        # resulting in multiple siblings that do not have .plugin defined
                         # or where the relationship with the parent plugin is incorrect
                         function.plugin = plugin
                         if isinstance(function, MessageFunction):
@@ -170,7 +166,7 @@ class PluginManager:
                             self.webhook_listeners[function.matcher].append(function)
                         else:
                             raise TypeError(
-                                f"{self.__class__.__name__} has a function of unsupported"
+                                f"{plugin.__class__.__name__} has a function of unsupported"
                                 f" type {type(function)}."
                             )
 
