@@ -5,7 +5,7 @@ import re
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, Dict, ItemsView, List, Optional, Sequence
+from typing import Dict, ItemsView, List, Optional, Sequence
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
@@ -13,24 +13,6 @@ from mmpy_bot.settings import Settings
 from mmpy_bot.wrappers import EventWrapper, Message
 
 log = logging.getLogger("mmpy.plugin_base")
-
-
-def caller(driver):
-    """Implements a callback with access to the mattermost driver."""
-
-    async def call_function(
-        function: Function,
-        event: EventWrapper,
-        groups: Optional[Sequence[str]] = [],
-    ):
-        if function.is_coroutine:
-            await function(event, *groups)  # type:ignore
-        else:
-            # By default, we use the global threadpool of the driver, but we could use
-            # a plugin-specific thread or process pool if we wanted.
-            driver.threadpool.add_task(function, event, *groups)
-
-    return call_function
 
 
 class Plugin(ABC):
@@ -58,7 +40,6 @@ class Plugin(ABC):
         self.driver = driver
         self.manager = manager
         self.settings = settings
-        self.call_function = caller(driver)
 
     def on_start(self):
         """Will be called after initialization.
@@ -75,6 +56,19 @@ class Plugin(ABC):
         """
         log.debug(f"Plugin {self.__class__.__name__} stopped!")
         return self
+
+    async def call_function(
+        self,
+        function: Function,
+        event: EventWrapper,
+        groups: Optional[Sequence[str]] = [],
+    ):
+        if function.is_coroutine:
+            await function(event, *groups)  # type:ignore
+        else:
+            # By default, we use the global threadpool of the driver, but we could use
+            # a plugin-specific thread or process pool if we wanted.
+            self.driver.threadpool.add_task(function, event, *groups)
 
 
 class HelpPlugin(Plugin):
@@ -170,7 +164,6 @@ class PluginManager:
         self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
         self.plugins: Sequence[Plugin] = plugins
-        self.call_function: Optional[Callable] = None
 
         self.message_listeners: Dict[re.Pattern, List[MessageFunction]] = defaultdict(
             list
