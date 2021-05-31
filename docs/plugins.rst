@@ -194,10 +194,10 @@ which will return `PluginHelpInfo` instances.
 * `location` - name of the plugin class
 * `function` - function object decorated with `listen_to`
 * `pattern` - regular expression or pattern that triggers the function
-* `plugin_header` - first line of docstring of `Plugin` class
-* `plugin_full` docstring of `Plugin` class
-* `function_header` - first line of docstring of decorated function
-* `function_full` - docstring of decorated function - for `click` functions,
+* `plugin_docheader` - first line of docstring of `Plugin` class
+* `plugin_docfull` docstring of `Plugin` class
+* `function_docheader` - first line of docstring of decorated function
+* `function_docfull` - docstring of decorated function - for `click` functions,
   includes formatted help text
 * `direct` - *True* if function can only be used via direct message
 * `mention` - *True* if function can only be triggered by prefixing with
