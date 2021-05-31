@@ -28,6 +28,7 @@ class Plugin(ABC):
         self,
     ):
         self.driver: Optional[Driver] = None
+        self.manager: Optional[PluginManager] = None
         self.settings: Optional[Settings] = None
         self.docstring = self.__doc__ if self.__doc__ != Plugin.__doc__ else None
 
