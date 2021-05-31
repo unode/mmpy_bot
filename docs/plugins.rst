@@ -161,6 +161,7 @@ the `ExamplePlugin` to see what it looks like!
     def hello_click(
         self, message: Message, positional_arg: str, keyword_arg: float, flag: bool
     ):
+        """A click function documented via docstring"""
         response = (
             "Received the following arguments:\n"
             f"- positional_arg: {positional_arg}\n"
@@ -173,55 +174,58 @@ Custom help messages
 --------------------
 
 `mmpy_bot` defaults to responding to `@botname help` or `help` in a direct
-message. If you wish to customize the way help information is displayed you
-can:
+message if the `HelpPlugin` is enabled. If you wish to customize the way help
+is displayed you can subclass `HelpPlugin` and override `get_help_string`.
+To access information about active plugins call `self.manager.get_help()`
+which will return `PluginHelpInfo` instances.
 
 .. code-block:: python
 
-    from mmpy_bot.plugins import PluginManager
+    from mmpy_bot.plugins import HelpPlugin
 
-    class MyPluginManager(PluginManager):
+    class MyHelpPlugin(HelpPlugin):
         def get_help_string(self):
-            help_elements = self.get_help()
-            return f"This is all the help I can share {help_elements}"
+            list_of_plugin_help_info = self.manage.get_help()
+            return f"This is all the help I can share {list_of_plugin_help_info}"
 
-You can then specify how the bot should react and where the help text should
-be displayed by using:
+`PluginHelpInfo` provides the following attributes:
+
+* `help_type` - a string *message* or *webhook*
+* `location` - name of the plugin class
+* `function` - function object decorated with `listen_to`
+* `pattern` - regular expression or pattern that triggers the function
+* `plugin_header` - first line of docstring of `Plugin` class
+* `plugin_full` docstring of `Plugin` class
+* `function_header` - first line of docstring of decorated function
+* `function_full` - docstring of decorated function - for `click` functions,
+  includes formatted help text
+* `direct` - *True* if function can only be used via direct message
+* `mention` - *True* if function can only be triggered by prefixing with
+  `@botname`
+* `annotations` - a dictionary with additional keyword arguments passed to
+  `listen_to` or `listen_webhook`.
+
+You should then enable your custom plugin by adding it to the list of enabled
+plugins:
 
 .. code-block:: python
 
     from mmpy_bot import Bot, Settings
-    from my_plugin import MyPlugin
-
-    plugins=[
-        MyPlugin()
-    ]
+    from my_help_plugin import MyHelpPlugin
 
     bot = Bot(
         settings=Settings(
             ...,
         ),
-        plugins=MyPluginManager(  # Add your PluginManager here
-            plugins,
-            help_trigger=True  # bot reacts to "@botname help"
-            help_trigger_bang=True  # bot reacts to "!help"
-            direct_help=True  # help is sent in a private/direct message
-        ]),
+        plugins=[
+            MyHelpPlugin()
+            ...,
+        ],
     )
     bot.run()
 
-The options ``help_trigger``, ``help_trigger_bang`` and ``direct_help`` are
-also available for every ``Plugin()`` individually.
-
-.. code-block:: python
-
-    plugins=[
-        MyPlugin(
-            help_trigger=True  # bot reacts to "@botname help"
-            help_trigger_bang=True  # bot reacts to "!help"
-            direct_help=True  # help is sent in a private/direct message
-        )
-    ]
+If you wish to have the bot respond to `!help` in any channel, you can set the
+`RESPOND_CHANNEL_HELP` setting to `True`.
 
 File upload
 -----------
