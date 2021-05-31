@@ -35,7 +35,7 @@ class Plugin(ABC):
         self,
         driver: Driver,
         manager: PluginManager,
-        settings: Optional[Settings] = None,
+        settings: Settings,
     ):
         self.driver = driver
         self.manager = manager
@@ -85,7 +85,7 @@ class HelpPlugin(Plugin):
         self,
         driver: Driver,
         manager: PluginManager,
-        settings: Optional[Settings] = None,
+        settings: Settings,
     ):
         super().initialize(driver, manager, settings)
 
