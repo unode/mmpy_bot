@@ -43,7 +43,7 @@ class ExamplePlugin(Plugin):
     def hello_click(
         self, message: Message, positional_arg: str, keyword_arg: float, flag: bool
     ):
-        """A click function documented via docstring"""
+        """A click function documented via docstring."""
         response = (
             "Received the following arguments:\n"
             f"- positional_arg: {positional_arg}\n"
@@ -83,7 +83,7 @@ class ExamplePlugin(Plugin):
 
     @listen_to("^!hello_webhook$", re.IGNORECASE, category="webhook")
     async def hello_webhook(self, message: Message):
-        """A webhook that says hello"""
+        """A webhook that says hello."""
         self.driver.webhooks.call_webhook(
             "eauegoqk4ibxigfybqrsfmt48r",
             options={
