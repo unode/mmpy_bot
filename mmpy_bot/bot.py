@@ -36,10 +36,10 @@ class Bot:
             self.manager = PluginManager(
                 [HelpPlugin(), ExamplePlugin(), WebHookExample()]
             )
-        elif isinstance(plugins, list):
-            self.manager = PluginManager(plugins)
-        else:
+        elif isinstance(plugins, PluginManager):
             self.manager = plugins
+        else:
+            self.manager = PluginManager(plugins)
 
         # Use default settings if none were specified.
         self.settings = settings or Settings()
