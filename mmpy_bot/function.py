@@ -9,7 +9,7 @@ from typing import Callable, Optional, Sequence
 
 import click
 
-from mmpy_bot.utils import completed_future, spaces
+from mmpy_bot.utils import completed_future
 from mmpy_bot.webhook_server import NoResponse
 from mmpy_bot.wrappers import Message, WebHookEvent
 
@@ -146,34 +146,6 @@ class MessageFunction(Function):
                 return self.plugin.driver.reply_to(message, f"{e}\n{self.docstring}")
 
         return self.function(self.plugin, message, *args)
-
-    def get_help_string(self):
-        string = super().get_help_string()
-        if any(
-            [
-                self.needs_mention,
-                self.direct_only,
-                self.allowed_users,
-                self.allowed_channels,
-            ]
-        ):
-            # Print some information describing the usage settings.
-            string += f"{spaces(4)}Additional information:\n"
-            if self.needs_mention:
-                string += (
-                    f"{spaces(4)}- Needs to either mention @{self.plugin.driver.username}"
-                    " or be a direct message.\n"
-                )
-            if self.direct_only:
-                string += f"{spaces(4)}- Needs to be a direct message.\n"
-
-            if self.allowed_users:
-                string += f"{spaces(4)}- Restricted to certain users.\n"
-
-            if self.allowed_channels:
-                string += f"{spaces(4)}- Restricted to certain channels.\n"
-
-        return string
 
 
 def listen_to(
