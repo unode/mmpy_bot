@@ -118,13 +118,13 @@ class HelpPlugin(Plugin):
 
             if h.help_type == "webhook":
                 string += (
-                    f"- `{cmd}` {direct} {mention} - (webhook) {h.function_header}\n"
+                    f"- `{cmd}` {direct} {mention} - (webhook) {h.function_docheader}\n"
                 )
             else:
-                if not h.function_header:
+                if not h.function_docheader:
                     string += f"- `{cmd}` {direct} {mention}\n"
                 else:
-                    string += f"- `{cmd}` {direct} {mention} - {h.function_header}\n"
+                    string += f"- `{cmd}` {direct} {mention} - {h.function_docheader}\n"
 
         return string
 
@@ -140,10 +140,10 @@ class PluginHelpInfo:
     location: str
     function: str
     pattern: str
-    plugin_header: str
-    plugin_full: str
-    function_header: str
-    function_full: str
+    plugin_docheader: str
+    plugin_docfull: str
+    function_docheader: str
+    function_docfull: str
     direct: bool
     mention: bool
     annotations: Dict
@@ -232,10 +232,10 @@ class PluginManager:
                         location=function.plugin.__class__.__name__,
                         function=function,
                         pattern=matcher.pattern,
-                        plugin_header=plug_head,
-                        plugin_full=plug_full,
-                        function_header=func_head,
-                        function_full=func_full,
+                        plugin_docheader=plug_head,
+                        plugin_docfull=plug_full,
+                        function_docheader=func_head,
+                        function_docfull=func_full,
                         direct=direct,
                         mention=mention,
                         annotations=function.annotations,
