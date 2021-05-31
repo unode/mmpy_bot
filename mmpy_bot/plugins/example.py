@@ -30,7 +30,12 @@ class ExamplePlugin(Plugin):
             f"Number of busy worker threads: {busy}",
         )
 
-    @listen_to("hello_click", needs_mention=True, category="click")
+    @listen_to(
+        "hello_click",
+        needs_mention=True,
+        category="click",
+        syntax="hello_click --keyword-arg --flag",
+    )
     @click.command(help="An example click command with various arguments.")
     @click.argument("POSITIONAL_ARG", type=str)
     @click.option("--keyword-arg", type=float, default=5.0, help="A keyword arg.")
@@ -115,7 +120,11 @@ class ExamplePlugin(Plugin):
         self.driver.reply_to(message, "pong")
 
     @listen_to(
-        "^reply at (.*)$", re.IGNORECASE, needs_mention=True, category="schedule"
+        "^reply at (.*)$",
+        re.IGNORECASE,
+        needs_mention=True,
+        category="schedule",
+        syntax="reply at TIMESTAMP",
     )
     def schedule_once(self, message: Message, trigger_time: str):
         """Schedules a reply to be sent at the given time.
