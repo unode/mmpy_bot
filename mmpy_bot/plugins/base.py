@@ -72,7 +72,7 @@ class Plugin(ABC):
 
 
 class HelpPlugin(Plugin):
-    """Provide a `help` function that lists functions provided by all plygins"""
+    """Provide a `help` function that lists functions provided by all plygins."""
 
     def __init__(
         self,
@@ -130,7 +130,7 @@ class HelpPlugin(Plugin):
 
     @listen_to("^help$", needs_mention=True)
     async def help(self, message: Message):
-        """Shows this help information"""
+        """Shows this help information."""
         self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)
 
 
@@ -200,7 +200,7 @@ class PluginManager:
                             )
 
     def _split_docstring(self, doc):
-        """Split docstring into first line (header) and full body"""
+        """Split docstring into first line (header) and full body."""
         return (doc.split("\n", 1)[0], doc) if doc is not None else ("", "")
 
     def _generate_plugin_help(
@@ -209,7 +209,7 @@ class PluginManager:
         help_type: str,
         items: ItemsView[re.Pattern, List[Function]],
     ):
-        """Build PluginHelpInfo objects from plugin and function information
+        """Build PluginHelpInfo objects from plugin and function information.
 
         Returns one PluginHelpInfo instance for every listener (message or webhook)
         """
