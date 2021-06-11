@@ -5,7 +5,7 @@ import inspect
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Sequence
+from typing import Callable, Optional, Sequence, Union
 
 import click
 
@@ -19,7 +19,7 @@ log = logging.getLogger("mmpy.function")
 class Function(ABC):
     def __init__(
         self,
-        function: Callable,
+        function: Union[Callable, Function],
         matcher: re.Pattern,
         **annotations,
     ):
