@@ -139,7 +139,7 @@ class HelpPlugin(Plugin):
 class PluginHelpInfo:
     help_type: str
     location: str
-    function: str
+    function: Function
     pattern: str
     plugin_docheader: str
     plugin_docfull: str
