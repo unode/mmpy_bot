@@ -162,7 +162,6 @@ class PluginManager:
         self,
         plugins: Sequence[Plugin],
     ):
-        self.driver: Optional[Driver] = None
         self.settings: Optional[Settings] = None
         self.plugins: Sequence[Plugin] = plugins
 
