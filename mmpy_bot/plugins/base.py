@@ -147,6 +147,7 @@ class PluginHelpInfo:
     function_docfull: str
     direct: bool
     mention: bool
+    is_click: bool
     annotations: Dict
 
 
@@ -238,6 +239,7 @@ class PluginManager:
                         function_docfull=func_full,
                         direct=direct,
                         mention=mention,
+                        is_click=function.is_click_function,
                         annotations=function.annotations,
                     )
                 )
