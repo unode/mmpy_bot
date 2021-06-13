@@ -183,22 +183,24 @@ class PluginManager:
             # Register listeners for any listener functions in the plugin
             for attribute in dir(plugin):
                 attribute = getattr(plugin, attribute)
-                if isinstance(attribute, Function):
-                    # Register this function and any potential siblings
-                    for function in [attribute] + attribute.siblings:
-                        # Plugin message/webhook handlers can be decorated multiple times
-                        # resulting in multiple siblings that do not have .plugin defined
-                        # or where the relationship with the parent plugin is incorrect
-                        function.plugin = plugin
-                        if isinstance(function, MessageFunction):
-                            self.message_listeners[function.matcher].append(function)
-                        elif isinstance(function, WebHookFunction):
-                            self.webhook_listeners[function.matcher].append(function)
-                        else:
-                            raise TypeError(
-                                f"{plugin.__class__.__name__} has a function of unsupported"
-                                f" type {type(function)}."
-                            )
+                if not isinstance(attribute, Function):
+                    continue
+
+                # Register this function and any potential siblings
+                for function in [attribute] + attribute.siblings:
+                    # Plugin message/webhook handlers can be decorated multiple times
+                    # resulting in multiple siblings that do not have .plugin defined
+                    # or where the relationship with the parent plugin is incorrect
+                    function.plugin = plugin
+                    if isinstance(function, MessageFunction):
+                        self.message_listeners[function.matcher].append(function)
+                    elif isinstance(function, WebHookFunction):
+                        self.webhook_listeners[function.matcher].append(function)
+                    else:
+                        raise TypeError(
+                            f"{plugin.__class__.__name__} has a function of unsupported"
+                            f" type {type(function)}."
+                        )
 
     def _split_docstring(self, doc):
         """Split docstring into first line (header) and full body."""
