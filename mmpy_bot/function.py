@@ -5,13 +5,17 @@ import inspect
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Callable, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Callable, Optional, Sequence, Union
 
 import click
 
 from mmpy_bot.utils import completed_future
 from mmpy_bot.webhook_server import NoResponse
 from mmpy_bot.wrappers import Message, WebHookEvent
+
+if TYPE_CHECKING:
+    from mmpy_bot.plugins import Plugin
+
 
 log = logging.getLogger("mmpy.function")
 
@@ -38,7 +42,7 @@ class Function(ABC):
         self.annotations = annotations
 
         # To be set in the child class or from the parent plugin
-        self.plugin: Optional["Plugin"] = None
+        self.plugin: Optional[Plugin] = None
         self.name: Optional[str] = None
         self.docstring: Optional[str] = None
 
