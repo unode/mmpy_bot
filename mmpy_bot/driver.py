@@ -131,9 +131,8 @@ class Driver(mattermostdriver.Driver):
                 message=response,
                 file_paths=file_paths,
                 props=props,
+                ephemeral_user_id=message.user_id if ephemeral else None,
             )
-            if ephemeral:
-                direct_args["ephemeral_user_id"] = message.user_id
 
             return self.direct_message(**direct_args)
 
@@ -143,10 +142,8 @@ class Driver(mattermostdriver.Driver):
             root_id=message.reply_id,
             file_paths=file_paths,
             props=props,
+            ephemeral_user_id=message.user_id if ephemeral else None,
         )
-
-        if ephemeral:
-            reply_args["ephemeral_user_id"] = message.user_id
 
         return self.create_post(**reply_args)
 
