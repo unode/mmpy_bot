@@ -61,45 +61,16 @@ class TestEventHandler:
         handler = EventHandler(
             Driver(),
             Settings(),
-            plugins=PluginManager([ExamplePlugin(), WebHookExample()]),
+            manager=PluginManager([ExamplePlugin(), WebHookExample()]),
         )
         # Test the name matcher regexp
         assert handler._name_matcher.match("@my_username are you there?")
         assert not handler._name_matcher.match("@other_username are you there?")
 
-        # Test that all listeners from the individual plugins are now registered on
-        # the handler
-        for plugin in handler.plug_manager:
-            for pattern, listener in plugin.message_listeners.items():
-                assert listener in handler.message_listeners[pattern]
-            for pattern, listener in plugin.webhook_listeners.items():
-                assert listener in handler.webhook_listeners[pattern]
-
-        # And vice versa, check that any listeners on the handler come from the
-        # registered plugins
-        for pattern, listeners in handler.message_listeners.items():
-            for listener in listeners:
-                assert any(
-                    [
-                        pattern in plugin.message_listeners
-                        and listener in plugin.message_listeners[pattern]
-                        for plugin in handler.plug_manager
-                    ]
-                )
-        for pattern, listeners in handler.webhook_listeners.items():
-            for listener in listeners:
-                assert any(
-                    [
-                        pattern in plugin.webhook_listeners
-                        and listener in plugin.webhook_listeners[pattern]
-                        for plugin in handler.plug_manager
-                    ]
-                )
-
     @mock.patch("mmpy_bot.driver.Driver.username", new="my_username")
     def test_should_ignore(self):
         handler = EventHandler(
-            Driver(), Settings(IGNORE_USERS=["ignore_me"]), plugins=PluginManager([])
+            Driver(), Settings(IGNORE_USERS=["ignore_me"]), manager=PluginManager([])
         )
         # We shouldn't ignore a message from betty, since she is not listed
         assert not handler._should_ignore(create_message(sender_name="betty"))
@@ -112,14 +83,14 @@ class TestEventHandler:
         handler = EventHandler(
             Driver(),
             Settings(IGNORE_USERS=["ignore_me"]),
-            plugins=PluginManager([]),
+            manager=PluginManager([]),
             ignore_own_messages=False,
         )
         assert not handler._should_ignore(create_message(sender_name="my_username"))
 
     @mock.patch("mmpy_bot.event_handler.EventHandler._handle_post")
     def test_handle_event(self, handle_post):
-        handler = EventHandler(Driver(), Settings(), plugins=PluginManager([]))
+        handler = EventHandler(Driver(), Settings(), manager=PluginManager([]))
         # This event should trigger _handle_post
         asyncio.run(handler._handle_event(json.dumps(create_message().body)))
         # This event should not
@@ -130,10 +101,14 @@ class TestEventHandler:
     @mock.patch("mmpy_bot.driver.Driver.username", new="my_username")
     def test_handle_post(self):
         # Create an initialized plugin so its listeners are registered
+        plugin = ExamplePlugin()
         driver = Driver()
-        plugin = ExamplePlugin().initialize(driver)
+        manager = PluginManager([plugin])
+        settings = Settings()
+        # Initialization should happen via PluginManager
+        manager.initialize_manager(driver, settings)
         # Construct a handler with it
-        handler = EventHandler(driver, Settings(), plugins=PluginManager([plugin]))
+        handler = EventHandler(driver, settings, manager)
 
         # Mock the call_function of the plugin so we can make some asserts
         async def mock_call_function(function, message, groups):
@@ -156,10 +131,15 @@ class TestEventHandler:
 
     def test_handle_webhook(self):
         # Create an initialized plugin so its listeners are registered
+        plugin = WebHookExample()
         driver = Driver()
-        plugin = WebHookExample().initialize(driver, Settings())
+        manager = PluginManager([plugin])
+        settings = Settings()
+        # Initialization should happen via PluginManager
+        manager.initialize_manager(driver, settings)
+        print(manager.webhook_listeners)
         # Construct a handler with it
-        handler = EventHandler(driver, Settings(), plugins=PluginManager([plugin]))
+        handler = EventHandler(driver, settings, manager)
 
         # Mock the call_function of the plugin so we can make some asserts
         async def mock_call_function(function, event, groups):
