@@ -31,13 +31,13 @@ class Function(ABC):
             self.siblings.append(function)
             function = function.function
 
-        self.function = function
+        self.function: Union[Callable, Function] = function
         self.is_coroutine = asyncio.iscoroutinefunction(function)
         self.matcher = matcher
         self.annotations = annotations
 
         # To be set in the child class or from the parent plugin
-        self.plugin = None
+        self.plugin: Optional["Plugin"] = None
         self.name: Optional[str] = None
         self.docstring: Optional[str] = None
 
