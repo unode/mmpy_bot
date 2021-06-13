@@ -184,7 +184,7 @@ def listen_to(
             reg = f"^{reg.strip('^')} (.*)?"  # noqa
 
         pattern = re.compile(reg, regexp_flag)
-        return MessageFunction(
+        new_func = MessageFunction(
             func,
             matcher=pattern,
             direct_only=direct_only,
@@ -193,6 +193,10 @@ def listen_to(
             allowed_channels=allowed_channels,
             **annotations,
         )
+
+        # Preserve docstring
+        new_func.__doc__ = func.__doc__
+        return new_func
 
     return wrapped_func
 
@@ -212,7 +216,7 @@ class WebHookFunction(Function):
             )
 
         self.name = self.function.__qualname__
-        self.docstring = self.function.__doc__
+        self.docstring = self.function.__doc__ or ""
 
         argspec = list(inspect.signature(self.function).parameters.keys())
         if not argspec == ["self", "event"]:
@@ -250,10 +254,14 @@ def listen_webhook(
 
     def wrapped_func(func):
         pattern = re.compile(regexp)
-        return WebHookFunction(
+        new_func = WebHookFunction(
             func,
             matcher=pattern,
             **annotations,
         )
+
+        # Preserve docstring
+        new_func.__doc__ = func.__doc__
+        return new_func
 
     return wrapped_func

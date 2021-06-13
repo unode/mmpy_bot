@@ -216,7 +216,7 @@ class PluginManager:
         """
         for matcher, functions in items:
             for function in functions:
-                plug_head, plug_full = self._split_docstring(function.plugin.docstring)
+                plug_head, plug_full = self._split_docstring(function.plugin.__doc__)
                 func_head, func_full = self._split_docstring(function.docstring)
 
                 if help_type == "message":
