@@ -25,9 +25,7 @@ class Plugin(ABC):
     way, you can implement multithreading or multiprocessing as desired.
     """
 
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         self.driver: Optional[Driver] = None
         self.plugin_manager: Optional[PluginManager] = None
         self.settings: Optional[Settings] = None
