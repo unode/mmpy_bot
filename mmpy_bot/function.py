@@ -44,7 +44,7 @@ class Function(ABC):
         # To be set in the child class or from the parent plugin
         self.plugin: Optional[Plugin] = None
         self.name: Optional[str] = None
-        self.docstring: Optional[str] = None
+        self.docstring = self.function.__doc__ or ""
 
         @abstractmethod
         def __call__(self, *args):
@@ -79,8 +79,6 @@ class MessageFunction(Function):
             self.allowed_channels = []
         else:
             self.allowed_channels = [channel.lower() for channel in allowed_channels]
-
-        self.docstring = self.function.__doc__ or ""
 
         if self.is_click_function:
             _function = self.function.callback
@@ -220,7 +218,6 @@ class WebHookFunction(Function):
             )
 
         self.name = self.function.__qualname__
-        self.docstring = self.function.__doc__ or ""
 
         argspec = list(inspect.signature(self.function).parameters.keys())
         if not argspec == ["self", "event"]:
