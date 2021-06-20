@@ -5,7 +5,7 @@ import re
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
@@ -114,7 +114,7 @@ class HelpPlugin(Plugin):
                 category = "uncategorized" if category is None else category
                 string += f"Category `{category}`:\n"
 
-            cmd = h.metadata.get("syntax", h.pattern)
+            cmd = h.metadata.get("human_description", h.pattern)
             direct = "`(*)`" if h.direct else ""
             mention = "`(+)`" if h.mention else ""
 
@@ -153,8 +153,7 @@ class FunctionInfo:
 
 
 def generate_plugin_help(
-    help_type: str,
-    listeners: Dict[re.Pattern[Any], List[Function]],
+    listeners: Dict[re.Pattern[Any], List[Union[MessageFunction, WebHookFunction]]],
 ):
     """Build FunctionInfo objects from plugin and function information.
 
@@ -168,13 +167,17 @@ def generate_plugin_help(
             plug_head, plug_full = split_docstring(function.plugin.__doc__)
             func_head, func_full = split_docstring(function.docstring)
 
-            if help_type == "message":
+            if isinstance(function, MessageFunction):
                 direct = function.direct_only
                 mention = function.needs_mention
-            elif help_type == "webhook":
+                help_type = "message"
+            elif isinstance(function, WebHookFunction):
                 direct = mention = False
+                help_type = "webhook"
             else:
-                raise NotImplementedError(f"Unknown help type: '{help_type}'")
+                raise NotImplementedError(
+                    f"Unknown/Unsupported listener type: '{type(function)}'"
+                )
 
             plug_help.append(
                 FunctionInfo(
@@ -255,7 +258,7 @@ class PluginManager:
             plugin.on_stop()
 
     def get_help(self) -> List[FunctionInfo]:
-        plug_help = generate_plugin_help("message", self.message_listeners)
-        plug_help += generate_plugin_help("webhook", self.webhook_listeners)
+        plug_help = generate_plugin_help(self.message_listeners)
+        plug_help += generate_plugin_help(self.webhook_listeners)
 
         return plug_help

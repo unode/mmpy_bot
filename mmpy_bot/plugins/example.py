@@ -34,7 +34,7 @@ class ExamplePlugin(Plugin):
         "hello_click",
         needs_mention=True,
         category="click",
-        syntax="hello_click --keyword-arg --flag",
+        human_description="hello_click --keyword-arg --flag",
     )
     @click.command(help="An example click command with various arguments.")
     @click.argument("POSITIONAL_ARG", type=str)
@@ -124,7 +124,7 @@ class ExamplePlugin(Plugin):
         re.IGNORECASE,
         needs_mention=True,
         category="schedule",
-        syntax="reply at TIMESTAMP",
+        human_description="reply at TIMESTAMP",
     )
     def schedule_once(self, message: Message, trigger_time: str):
         """Schedules a reply to be sent at the given time.
