@@ -30,8 +30,6 @@ class Bot:
         settings: Optional[Settings] = None,
         plugins: Optional[Union[List[Plugin], PluginManager]] = None,
     ):
-        self.manager: PluginManager
-
         if plugins is None:
             self.manager = PluginManager(
                 [HelpPlugin(), ExamplePlugin(), WebHookExample()]
