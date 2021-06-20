@@ -25,7 +25,7 @@ class Function(ABC):
         self,
         function: Union[Callable, Function],
         matcher: re.Pattern,
-        **annotations,
+        **metadata,
     ):
         # If another Function was passed, keep track of all these siblings.
         # We later use them to register not only the outermost Function, but also any
@@ -39,7 +39,7 @@ class Function(ABC):
         self.is_coroutine = asyncio.iscoroutinefunction(function)
         self.is_click_function: bool = False
         self.matcher = matcher
-        self.annotations = annotations
+        self.metadata = metadata
 
         # To be set in the child class or from the parent plugin
         self.plugin: Optional[Plugin] = None
@@ -159,7 +159,7 @@ def listen_to(
     needs_mention=False,
     allowed_users=None,
     allowed_channels=None,
-    **annotations,
+    **metadata,
 ):
     """Wrap the given function in a MessageFunction class so we can register some
     properties."""
@@ -193,7 +193,7 @@ def listen_to(
             needs_mention=needs_mention,
             allowed_users=allowed_users,
             allowed_channels=allowed_channels,
-            **annotations,
+            **metadata,
         )
 
         # Preserve docstring
@@ -249,7 +249,7 @@ class WebHookFunction(Function):
 
 def listen_webhook(
     regexp: str,
-    **annotations,
+    **metadata,
 ):
     """Wrap the given function in a WebHookFunction class with the specified regexp."""
 
@@ -258,7 +258,7 @@ def listen_webhook(
         new_func = WebHookFunction(
             func,
             matcher=pattern,
-            **annotations,
+            **metadata,
         )
 
         # Preserve docstring

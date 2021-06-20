@@ -122,6 +122,7 @@ class Bot:
             return
 
         log.info("Stopping bot.")
+
         # Shutdown the running plugins
         self.manager.stop()
 

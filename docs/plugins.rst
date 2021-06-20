@@ -202,7 +202,7 @@ which will return `PluginHelpInfo` instances.
 * `direct` - *True* if function can only be used via direct message
 * `mention` - *True* if function can only be triggered by prefixing with
   `@botname`
-* `annotations` - a dictionary with additional keyword arguments passed to
+* `metadata` - a dictionary with additional keyword arguments passed to
   `listen_to` or `listen_webhook`.
 
 You should then enable your custom plugin by adding it to the list of enabled

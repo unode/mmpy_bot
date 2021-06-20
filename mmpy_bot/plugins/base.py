@@ -96,7 +96,7 @@ class HelpPlugin(Plugin):
     def get_help_string(self) -> str:
         def custom_sort(rec):
             return (
-                rec.annotations.get("category", ""),  # No categories first
+                rec.metadata.get("category", ""),  # No categories first
                 rec.help_type,
                 rec.pattern.lstrip("^[(-"),
             )
@@ -107,13 +107,13 @@ class HelpPlugin(Plugin):
         old_category = None
         for h in sorted(self.manager.get_help(), key=custom_sort):
             # If categories are defined, group functions accordingly
-            category = h.annotations.get("category")
+            category = h.metadata.get("category")
             if category != old_category:
                 old_category = category
                 category = "uncategorized" if category is None else category
                 string += f"Category `{category}`:\n"
 
-            cmd = h.annotations.get("syntax", h.pattern)
+            cmd = h.metadata.get("syntax", h.pattern)
             direct = "`(*)`" if h.direct else ""
             mention = "`(+)`" if h.mention else ""
 
@@ -148,7 +148,7 @@ class PluginHelpInfo:
     direct: bool
     mention: bool
     is_click: bool
-    annotations: Dict
+    metadata: Dict
 
 
 class PluginManager:
@@ -249,7 +249,7 @@ class PluginManager:
                         direct=direct,
                         mention=mention,
                         is_click=function.is_click_function,
-                        annotations=function.annotations,
+                        metadata=function.metadata,
                     )
                 )
 
