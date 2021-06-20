@@ -133,9 +133,6 @@ class TestPluginManager:
                 assert pattern in hook_listeners
                 assert listener in hook_listeners[pattern]
 
-    def test_iteration(self):
-        assert list(self.plugin_manager) == self.plugin_manager.plugins
-
     def test_get_help(self):
         # Prior to initialization there is no help
         assert self.plugin_manager.get_help() == []
