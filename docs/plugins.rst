@@ -185,7 +185,7 @@ which will return `PluginHelpInfo` instances.
 
     class MyHelpPlugin(HelpPlugin):
         def get_help_string(self):
-            list_of_plugin_help_info = self.manage.get_help()
+            list_of_plugin_help_info = self.plugin_manager.get_help()
             return f"This is all the help I can share {list_of_plugin_help_info}"
 
 `PluginHelpInfo` provides the following attributes:
