@@ -5,7 +5,7 @@ import re
 from abc import ABC
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, ItemsView, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
@@ -214,13 +214,13 @@ class PluginManager:
         self,
         plug_help: List[FunctionInfo],
         help_type: str,
-        items: ItemsView[re.Pattern, List[Function]],
+        listeners: Dict[re.Pattern[Any], List[Function]],
     ):
         """Build FunctionInfo objects from plugin and function information.
 
         Returns one FunctionInfo instance for every listener (message or webhook)
         """
-        for matcher, functions in items:
+        for matcher, functions in listeners.items():
             for function in functions:
                 plug_head, plug_full = split_docstring(function.plugin.__doc__)
                 func_head, func_full = split_docstring(function.docstring)
@@ -253,7 +253,7 @@ class PluginManager:
     def get_help(self) -> List[FunctionInfo]:
         response: List[FunctionInfo] = []
 
-        self._generate_plugin_help(response, "message", self.message_listeners.items())
-        self._generate_plugin_help(response, "webhook", self.webhook_listeners.items())
+        self._generate_plugin_help(response, "message", self.message_listeners)
+        self._generate_plugin_help(response, "webhook", self.webhook_listeners)
 
         return response
