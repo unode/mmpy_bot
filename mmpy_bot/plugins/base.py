@@ -136,7 +136,7 @@ class HelpPlugin(Plugin):
 
 
 @dataclass
-class PluginHelpInfo:
+class FunctionInfo:
     help_type: str
     location: str
     function: Function
@@ -215,13 +215,13 @@ class PluginManager:
 
     def _generate_plugin_help(
         self,
-        plug_help: List[PluginHelpInfo],
+        plug_help: List[FunctionInfo],
         help_type: str,
         items: ItemsView[re.Pattern, List[Function]],
     ):
-        """Build PluginHelpInfo objects from plugin and function information.
+        """Build FunctionInfo objects from plugin and function information.
 
-        Returns one PluginHelpInfo instance for every listener (message or webhook)
+        Returns one FunctionInfo instance for every listener (message or webhook)
         """
         for matcher, functions in items:
             for function in functions:
@@ -237,7 +237,7 @@ class PluginManager:
                     raise NotImplementedError(f"Unknown help type: '{help_type}'")
 
                 plug_help.append(
-                    PluginHelpInfo(
+                    FunctionInfo(
                         help_type=help_type,
                         location=function.plugin.__class__.__name__,
                         function=function,
@@ -253,8 +253,8 @@ class PluginManager:
                     )
                 )
 
-    def get_help(self) -> List[PluginHelpInfo]:
-        response: List[PluginHelpInfo] = []
+    def get_help(self) -> List[FunctionInfo]:
+        response: List[FunctionInfo] = []
 
         self._generate_plugin_help(response, "message", self.message_listeners.items())
         self._generate_plugin_help(response, "webhook", self.webhook_listeners.items())

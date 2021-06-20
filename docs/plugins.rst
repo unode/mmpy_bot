@@ -177,7 +177,7 @@ Custom help messages
 message if the `HelpPlugin` is enabled. If you wish to customize the way help
 is displayed you can subclass `HelpPlugin` and override `get_help_string`.
 To access information about active plugins call `self.plugin_manager.get_help()`
-which will return `PluginHelpInfo` instances.
+which will return `FunctionInfo` instances.
 
 .. code-block:: python
 
@@ -188,7 +188,7 @@ which will return `PluginHelpInfo` instances.
             list_of_plugin_help_info = self.plugin_manager.get_help()
             return f"This is all the help I can share {list_of_plugin_help_info}"
 
-`PluginHelpInfo` provides the following attributes:
+`FunctionInfo` provides the following attributes:
 
 * `help_type` - a string *message* or *webhook*
 * `location` - name of the plugin class
