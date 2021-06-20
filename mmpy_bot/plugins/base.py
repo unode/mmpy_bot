@@ -200,12 +200,12 @@ class PluginManager:
                         )
 
     def start(self):
-        """Trigger on_start() on every registered plugin"""
+        """Trigger on_start() on every registered plugin."""
         for plugin in self.plugins:
             plugin.on_start()
 
     def stop(self):
-        """Trigger on_stop() on every registered plugin"""
+        """Trigger on_stop() on every registered plugin."""
         for plugin in self.plugins:
             plugin.on_stop()
 

@@ -3,7 +3,7 @@ from unittest import mock
 
 import click
 
-from mmpy_bot import Message, Plugin, Settings, listen_to, listen_webhook
+from mmpy_bot import Plugin, Settings, listen_to, listen_webhook
 from mmpy_bot.driver import Driver
 from mmpy_bot.plugins import PluginManager
 
