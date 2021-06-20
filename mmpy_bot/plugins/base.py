@@ -226,7 +226,7 @@ class PluginManager:
             list
         )
 
-    def initialize_manager(self, driver: Driver, settings: Settings):
+    def initialize(self, driver: Driver, settings: Settings):
         for plugin in self.plugins:
             plugin.initialize(driver, self, settings)
 

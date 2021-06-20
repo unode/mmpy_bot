@@ -27,7 +27,7 @@ class TestPlugin:
     def test_call_function(self, add_task):
         p = FakePlugin()
         # Functions only listen for events when initialized via PluginManager
-        PluginManager([p]).initialize_manager(Driver(), Settings())
+        PluginManager([p]).initialize(Driver(), Settings())
 
         # Since this is not an async function, a task should be added to the threadpool
         message = create_message(text="pattern")

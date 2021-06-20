@@ -67,7 +67,7 @@ class Bot:
             }
         )
         self.driver.login()
-        self.plugin_manager.initialize_manager(self.driver, self.settings)
+        self.plugin_manager.initialize(self.driver, self.settings)
         self.event_handler = EventHandler(
             self.driver, settings=self.settings, plugin_manager=self.plugin_manager
         )

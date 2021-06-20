@@ -108,7 +108,7 @@ class TestEventHandler:
         plugin_manager = PluginManager([plugin])
         settings = Settings()
         # Initialization should happen via PluginManager
-        plugin_manager.initialize_manager(driver, settings)
+        plugin_manager.initialize(driver, settings)
         # Construct a handler with it
         handler = EventHandler(driver, settings, plugin_manager)
 
@@ -138,7 +138,7 @@ class TestEventHandler:
         plugin_manager = PluginManager([plugin])
         settings = Settings()
         # Initialization should happen via PluginManager
-        plugin_manager.initialize_manager(driver, settings)
+        plugin_manager.initialize(driver, settings)
         # Construct a handler with it
         handler = EventHandler(driver, settings, plugin_manager)
 

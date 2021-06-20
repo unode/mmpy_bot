@@ -80,13 +80,13 @@ class TestPlugin:
         p = FakePlugin()
         m = PluginManager([p])
         with mock.patch.object(p, "initialize") as mocked:
-            m.initialize_manager(Driver(), Settings())
+            m.initialize(Driver(), Settings())
 
             mocked.assert_called_once()
 
     def test_initialize(self):
         m = PluginManager([FakePlugin()])
-        m.initialize_manager(Driver(), Settings())
+        m.initialize(Driver(), Settings())
 
         # Test whether the function was registered properly
         assert m.message_listeners[re.compile("pattern")] == [
@@ -118,7 +118,7 @@ class TestPluginManager:
         self.plugin_manager = PluginManager([self.p])
 
     def test_init(self):
-        self.plugin_manager.initialize_manager(Driver(), Settings())
+        self.plugin_manager.initialize(Driver(), Settings())
 
         # Test that listeners of individual plugins are now registered on the plugin_manager
         assert len(msg_listeners) == len(self.plugin_manager.message_listeners)
@@ -137,7 +137,7 @@ class TestPluginManager:
         # Prior to initialization there is no help
         assert self.plugin_manager.get_help() == []
 
-        self.plugin_manager.initialize_manager(Driver(), Settings())
+        self.plugin_manager.initialize(Driver(), Settings())
 
         assert len(self.plugin_manager.get_help()) != 0
 
