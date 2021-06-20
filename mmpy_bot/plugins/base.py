@@ -164,7 +164,7 @@ class PluginManager:
         plugins: Sequence[Plugin],
     ):
         self.settings: Optional[Settings] = None
-        self.plugins: Sequence[Plugin] = plugins
+        self.plugins = plugins
 
         self.message_listeners: Dict[re.Pattern, List[MessageFunction]] = defaultdict(
             list
