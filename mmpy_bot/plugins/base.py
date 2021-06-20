@@ -73,7 +73,7 @@ class Plugin(ABC):
 
 
 class HelpPlugin(Plugin):
-    """Provide a `help` function that lists functions provided by all plygins."""
+    """Provide a `help` function that lists functions provided by all plugins."""
 
     def __init__(
         self,
