@@ -73,14 +73,12 @@ class Bot:
         )
         self.webhook_server = None
 
-        self._initialize_webhook_server()
+        if self.settings.WEBHOOK_HOST_ENABLED:
+            self._initialize_webhook_server()
 
         self.running = False
 
     def _initialize_webhook_server(self):
-        if not self.settings.WEBHOOK_HOST_ENABLED:
-            return
-
         self.webhook_server = WebHookServer(
             url=self.settings.WEBHOOK_HOST_URL, port=self.settings.WEBHOOK_HOST_PORT
         )
