@@ -10,6 +10,7 @@ from typing import Dict, ItemsView, List, Optional, Sequence
 from mmpy_bot.driver import Driver
 from mmpy_bot.function import Function, MessageFunction, WebHookFunction, listen_to
 from mmpy_bot.settings import Settings
+from mmpy_bot.utils import split_docstring
 from mmpy_bot.wrappers import EventWrapper, Message
 
 log = logging.getLogger("mmpy.plugin_base")
@@ -209,10 +210,6 @@ class PluginManager:
         for plugin in self.plugins:
             plugin.on_stop()
 
-    def _split_docstring(self, doc):
-        """Split docstring into first line (header) and full body."""
-        return (doc.split("\n", 1)[0], doc) if doc is not None else ("", "")
-
     def _generate_plugin_help(
         self,
         plug_help: List[FunctionInfo],
@@ -225,8 +222,8 @@ class PluginManager:
         """
         for matcher, functions in items:
             for function in functions:
-                plug_head, plug_full = self._split_docstring(function.plugin.__doc__)
-                func_head, func_full = self._split_docstring(function.docstring)
+                plug_head, plug_full = split_docstring(function.plugin.__doc__)
+                func_head, func_full = split_docstring(function.docstring)
 
                 if help_type == "message":
                     direct = function.direct_only
