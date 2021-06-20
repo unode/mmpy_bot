@@ -72,7 +72,14 @@ class Plugin(ABC):
 
 
 class HelpPlugin(Plugin):
-    """Provide a `help` function that lists functions provided by all plugins."""
+    """Provide a `help` command that lists functions provided by all plugins.
+
+    With a few plugins enabled the help text can become quite verbose. For this reason,
+    this plugin defaults to sending a private/direct message with the information.
+
+    If you wish to disable this behavior pass `direct_help=False` and the help text will
+    be displayed in the channel where it is requested.
+    """
 
     def __init__(
         self,
