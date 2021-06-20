@@ -31,13 +31,13 @@ class Bot:
         plugins: Optional[Union[List[Plugin], PluginManager]] = None,
     ):
         if plugins is None:
-            self.manager = PluginManager(
+            self.plugin_manager = PluginManager(
                 [HelpPlugin(), ExamplePlugin(), WebHookExample()]
             )
         elif isinstance(plugins, PluginManager):
-            self.manager = plugins
+            self.plugin_manager = plugins
         else:
-            self.manager = PluginManager(plugins)
+            self.plugin_manager = PluginManager(plugins)
 
         # Use default settings if none were specified.
         self.settings = settings or Settings()
@@ -67,9 +67,9 @@ class Bot:
             }
         )
         self.driver.login()
-        self.manager.initialize_manager(self.driver, self.settings)
+        self.plugin_manager.initialize_manager(self.driver, self.settings)
         self.event_handler = EventHandler(
-            self.driver, settings=self.settings, manager=self.manager
+            self.driver, settings=self.settings, plugin_manager=self.plugin_manager
         )
         self.webhook_server = None
 
@@ -104,7 +104,7 @@ class Bot:
                 self.driver.threadpool.start_webhook_server_thread(self.webhook_server)
 
             # Trigger "start" methods on every plugin
-            self.manager.start()
+            self.plugin_manager.start()
 
             # Start listening for events
             self.event_handler.start()
@@ -124,7 +124,7 @@ class Bot:
         log.info("Stopping bot.")
 
         # Shutdown the running plugins
-        self.manager.stop()
+        self.plugin_manager.stop()
 
         # Stop the threadpool
         self.driver.threadpool.stop()

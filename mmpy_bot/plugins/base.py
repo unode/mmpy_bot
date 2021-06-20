@@ -28,18 +28,18 @@ class Plugin(ABC):
         self,
     ):
         self.driver: Optional[Driver] = None
-        self.manager: Optional[PluginManager] = None
+        self.plugin_manager: Optional[PluginManager] = None
         self.settings: Optional[Settings] = None
         self.docstring = self.__doc__ if self.__doc__ != Plugin.__doc__ else None
 
     def initialize(
         self,
         driver: Driver,
-        manager: PluginManager,
+        plugin_manager: PluginManager,
         settings: Settings,
     ):
         self.driver = driver
-        self.manager = manager
+        self.plugin_manager = plugin_manager
         self.settings = settings
 
     def on_start(self):
@@ -85,10 +85,10 @@ class HelpPlugin(Plugin):
     def initialize(
         self,
         driver: Driver,
-        manager: PluginManager,
+        plugin_manager: PluginManager,
         settings: Settings,
     ):
-        super().initialize(driver, manager, settings)
+        super().initialize(driver, plugin_manager, settings)
 
         if self.settings.RESPOND_CHANNEL_HELP:
             self.help = listen_to("^!help$")(self.help)
@@ -105,7 +105,7 @@ class HelpPlugin(Plugin):
         string += "###### `(*)` require the use of `@botname`, "
         string += "`(+)` can only be used in direct message\n"
         old_category = None
-        for h in sorted(self.manager.get_help(), key=custom_sort):
+        for h in sorted(self.plugin_manager.get_help(), key=custom_sort):
             # If categories are defined, group functions accordingly
             category = h.metadata.get("category")
             if category != old_category:

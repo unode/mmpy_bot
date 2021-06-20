@@ -241,8 +241,8 @@ class TestWebHookFunction:
 
     def test_ensure_response(self):
         p = ExamplePlugin()
-        manager = PluginManager([p])
-        p.initialize(Driver(), manager, Settings())
+        plugin_manager = PluginManager([p])
+        p.initialize(Driver(), plugin_manager, Settings())
 
         def mock_respond(event, response):
             event.responded = True

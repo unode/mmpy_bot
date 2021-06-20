@@ -30,8 +30,8 @@ class TestBot:
         )
         assert bot.driver.options["url"] == "test_url.org"
         assert bot.driver.options["token"] == "random_token"
-        assert isinstance(bot.manager, PluginManager)
-        assert bot.manager.plugins == plugins
+        assert isinstance(bot.plugin_manager, PluginManager)
+        assert bot.plugin_manager.plugins == plugins
         login.assert_called_once()
 
         # Verify that all of the passed plugins were initialized
@@ -44,10 +44,10 @@ class TestBot:
             bot.run()
             init_websocket.assert_called_once()
 
-            for plugin in bot.manager:
+            for plugin in bot.plugin_manager.plugins:
                 plugin.on_start.assert_called_once()
 
             bot.stop()
 
-            for plugin in bot.manager:
+            for plugin in bot.plugin_manager.plugins:
                 plugin.on_stop.assert_called_once()

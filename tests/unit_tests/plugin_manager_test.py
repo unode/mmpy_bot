@@ -115,36 +115,36 @@ class TestPlugin:
 class TestPluginManager:
     def setup_method(self):
         self.p = FakePlugin()
-        self.manager = PluginManager([self.p])
+        self.plugin_manager = PluginManager([self.p])
 
     def test_init(self):
-        self.manager.initialize_manager(Driver(), Settings())
+        self.plugin_manager.initialize_manager(Driver(), Settings())
 
-        # Test that listeners of individual plugins are now registered on the manager
-        assert len(msg_listeners) == len(self.manager.message_listeners)
-        for pattern, listeners in self.manager.message_listeners.items():
+        # Test that listeners of individual plugins are now registered on the plugin_manager
+        assert len(msg_listeners) == len(self.plugin_manager.message_listeners)
+        for pattern, listeners in self.plugin_manager.message_listeners.items():
             for listener in listeners:
                 assert pattern in msg_listeners
                 assert listener in msg_listeners[pattern]
 
-        assert len(hook_listeners) == len(self.manager.webhook_listeners)
-        for pattern, listeners in self.manager.webhook_listeners.items():
+        assert len(hook_listeners) == len(self.plugin_manager.webhook_listeners)
+        for pattern, listeners in self.plugin_manager.webhook_listeners.items():
             for listener in listeners:
                 assert pattern in hook_listeners
                 assert listener in hook_listeners[pattern]
 
     def test_iteration(self):
-        assert list(self.manager) == self.manager.plugins
+        assert list(self.plugin_manager) == self.plugin_manager.plugins
 
     def test_get_help(self):
         # Prior to initialization there is no help
-        assert self.manager.get_help() == []
+        assert self.plugin_manager.get_help() == []
 
-        self.manager.initialize_manager(Driver(), Settings())
+        self.plugin_manager.initialize_manager(Driver(), Settings())
 
-        assert len(self.manager.get_help()) != 0
+        assert len(self.plugin_manager.get_help()) != 0
 
-        for hlp in self.manager.get_help():
+        for hlp in self.plugin_manager.get_help():
             assert hlp.location == "FakePlugin"
             assert hlp.plugin_docheader == "Hello FakePlugin."
             assert (

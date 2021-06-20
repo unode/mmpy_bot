@@ -8,8 +8,10 @@ from mmpy_bot.wrappers import ActionEvent, Message, WebHookEvent
 class WebHookExample(Plugin):
     """Webhook plugin with examples of webhook server functionality."""
 
-    def initialize(self, driver: Driver, manager: PluginManager, settings: Settings):
-        super().initialize(driver, manager, settings)
+    def initialize(
+        self, driver: Driver, plugin_manager: PluginManager, settings: Settings
+    ):
+        super().initialize(driver, plugin_manager, settings)
         self.webhook_host_url = settings.WEBHOOK_HOST_URL
         self.webhook_host_port = settings.WEBHOOK_HOST_PORT
         return self

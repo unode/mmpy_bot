@@ -176,7 +176,7 @@ Custom help messages
 `mmpy_bot` defaults to responding to `@botname help` or `help` in a direct
 message if the `HelpPlugin` is enabled. If you wish to customize the way help
 is displayed you can subclass `HelpPlugin` and override `get_help_string`.
-To access information about active plugins call `self.manager.get_help()`
+To access information about active plugins call `self.plugin_manager.get_help()`
 which will return `PluginHelpInfo` instances.
 
 .. code-block:: python
