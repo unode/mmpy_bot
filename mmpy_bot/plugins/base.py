@@ -202,6 +202,16 @@ class PluginManager:
                             f" type {type(function)}."
                         )
 
+    def start(self):
+        """Trigger on_start() on every registered plugin"""
+        for plugin in self.plugins:
+            plugin.on_start()
+
+    def stop(self):
+        """Trigger on_stop() on every registered plugin"""
+        for plugin in self.plugins:
+            plugin.on_stop()
+
     def _split_docstring(self, doc):
         """Split docstring into first line (header) and full body."""
         return (doc.split("\n", 1)[0], doc) if doc is not None else ("", "")

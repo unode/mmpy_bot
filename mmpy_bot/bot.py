@@ -103,8 +103,8 @@ class Bot:
             if self.settings.WEBHOOK_HOST_ENABLED:
                 self.driver.threadpool.start_webhook_server_thread(self.webhook_server)
 
-            for plugin in self.manager:
-                plugin.on_start()
+            # Trigger "start" methods on every plugin
+            self.manager.start()
 
             # Start listening for events
             self.event_handler.start()
@@ -123,8 +123,8 @@ class Bot:
 
         log.info("Stopping bot.")
         # Shutdown the running plugins
-        for plugin in self.manager:
-            plugin.on_stop()
+        self.manager.stop()
+
         # Stop the threadpool
         self.driver.threadpool.stop()
         self.running = False
