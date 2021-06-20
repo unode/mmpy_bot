@@ -152,6 +152,50 @@ class FunctionInfo:
     metadata: Dict
 
 
+def generate_plugin_help(
+    help_type: str,
+    listeners: Dict[re.Pattern[Any], List[Function]],
+):
+    """Build FunctionInfo objects from plugin and function information.
+
+    Returns one FunctionInfo instance for every listener (message or webhook)
+    """
+
+    plug_help: List[FunctionInfo] = []
+
+    for matcher, functions in listeners.items():
+        for function in functions:
+            plug_head, plug_full = split_docstring(function.plugin.__doc__)
+            func_head, func_full = split_docstring(function.docstring)
+
+            if help_type == "message":
+                direct = function.direct_only
+                mention = function.needs_mention
+            elif help_type == "webhook":
+                direct = mention = False
+            else:
+                raise NotImplementedError(f"Unknown help type: '{help_type}'")
+
+            plug_help.append(
+                FunctionInfo(
+                    help_type=help_type,
+                    location=function.plugin.__class__.__name__,
+                    function=function,
+                    pattern=matcher.pattern,
+                    plugin_docheader=plug_head,
+                    plugin_docfull=plug_full,
+                    function_docheader=func_head,
+                    function_docfull=func_full,
+                    direct=direct,
+                    mention=mention,
+                    is_click=function.is_click_function,
+                    metadata=function.metadata,
+                )
+            )
+
+    return plug_help
+
+
 class PluginManager:
     """PluginManager is responsible for initializing all plugins and display aggregated
     help from each of them.
@@ -210,50 +254,8 @@ class PluginManager:
         for plugin in self.plugins:
             plugin.on_stop()
 
-    def _generate_plugin_help(
-        self,
-        plug_help: List[FunctionInfo],
-        help_type: str,
-        listeners: Dict[re.Pattern[Any], List[Function]],
-    ):
-        """Build FunctionInfo objects from plugin and function information.
-
-        Returns one FunctionInfo instance for every listener (message or webhook)
-        """
-        for matcher, functions in listeners.items():
-            for function in functions:
-                plug_head, plug_full = split_docstring(function.plugin.__doc__)
-                func_head, func_full = split_docstring(function.docstring)
-
-                if help_type == "message":
-                    direct = function.direct_only
-                    mention = function.needs_mention
-                elif help_type == "webhook":
-                    direct = mention = False
-                else:
-                    raise NotImplementedError(f"Unknown help type: '{help_type}'")
-
-                plug_help.append(
-                    FunctionInfo(
-                        help_type=help_type,
-                        location=function.plugin.__class__.__name__,
-                        function=function,
-                        pattern=matcher.pattern,
-                        plugin_docheader=plug_head,
-                        plugin_docfull=plug_full,
-                        function_docheader=func_head,
-                        function_docfull=func_full,
-                        direct=direct,
-                        mention=mention,
-                        is_click=function.is_click_function,
-                        metadata=function.metadata,
-                    )
-                )
-
     def get_help(self) -> List[FunctionInfo]:
-        response: List[FunctionInfo] = []
+        plug_help = generate_plugin_help("message", self.message_listeners)
+        plug_help += generate_plugin_help("webhook", self.webhook_listeners)
 
-        self._generate_plugin_help(response, "message", self.message_listeners)
-        self._generate_plugin_help(response, "webhook", self.webhook_listeners)
-
-        return response
+        return plug_help
