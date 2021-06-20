@@ -173,9 +173,6 @@ class PluginManager:
             list
         )
 
-    def __iter__(self):
-        return iter(self.plugins)
-
     def initialize_manager(self, driver: Driver, settings: Settings):
         for plugin in self.plugins:
             plugin.initialize(driver, self, settings)
