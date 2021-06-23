@@ -1,17 +1,18 @@
 import asyncio
 import time
 
-from .utils import start_bot  # noqa, only imported so that the bot is started
 from .utils import OFF_TOPIC_ID, RESPONSE_TIMEOUT
 from .utils import driver as driver_fixture
 from .utils import expect_reply
+from .utils import start_bot as start_bot_fixture
 
 # Hacky workaround to import the fixture without linting errors
 driver = driver_fixture
+start_bot = start_bot_fixture
 
 
 class TestWebHookExample:
-    def test_webhook_listener(self, driver):
+    def test_webhook_listener(self, start_bot, driver):
         asyncio.run(driver.trigger_own_webhook("ping", {"channel_id": OFF_TOPIC_ID}))
         time.sleep(RESPONSE_TIMEOUT)
 
@@ -27,7 +28,7 @@ class TestWebHookExample:
                 "Expected bot to post 'Webhook ping triggered!', but found no such message!"
             )
 
-    def test_button(self, driver):
+    def test_button(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "!button")
         reply = expect_reply(driver, post, retries=2)
         assert len(reply["props"]["attachments"]) == 1

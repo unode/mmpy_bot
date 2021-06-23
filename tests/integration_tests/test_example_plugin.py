@@ -1,22 +1,23 @@
 import time
 
-from .utils import start_bot  # noqa, only imported so that the bot is started
 from .utils import MAIN_BOT_ID, OFF_TOPIC_ID, RESPONSE_TIMEOUT, TEAM_ID
 from .utils import driver as driver_fixture
 from .utils import expect_reply
+from .utils import start_bot as start_bot_fixture
 
 # Hacky workaround to import the fixture without linting errors
 driver = driver_fixture
+start_bot = start_bot_fixture
 
 
 # Verifies that the bot is running and listening to this non-targeted message
-def test_start(driver):
+def test_start(start_bot, driver):
     post = driver.create_post(OFF_TOPIC_ID, "starting integration tests!")
     assert expect_reply(driver, post)["message"] == "Bring it on!"
 
 
 class TestExamplePlugin:
-    def test_sleep(self, driver):
+    def test_sleep(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "@main_bot sleep 5")
         # wait at least 10 seconds
         reply = expect_reply(driver, post, wait=max(10, RESPONSE_TIMEOUT), retries=0)
@@ -24,7 +25,7 @@ class TestExamplePlugin:
         # At least 5 seconds must have passed between our message and the response
         assert reply["create_at"] - post["create_at"] >= 5000
 
-    def test_admin(self, driver):
+    def test_admin(self, start_bot, driver):
         # Since this is not a direct message, we expect no reply at all
         post_id = driver.create_post(OFF_TOPIC_ID, "@main_bot admin")["id"]
         time.sleep(RESPONSE_TIMEOUT)
@@ -40,7 +41,7 @@ class TestExamplePlugin:
         reply = expect_reply(driver, post)
         assert reply["message"] == "You do not have permission to perform this action!"
 
-    def test_hello_click(self, driver):
+    def test_hello_click(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "@main_bot hello_click arg1")
         reply = expect_reply(driver, post)
         assert reply["message"] == (
@@ -60,7 +61,7 @@ class TestExamplePlugin:
             "- flag: True\n"
         )
 
-    def test_hello_channel(self, driver):
+    def test_hello_channel(self, start_bot, driver):
         original_post = driver.create_post(OFF_TOPIC_ID, "@main_bot hello_channel")
         time.sleep(RESPONSE_TIMEOUT)
 
@@ -79,7 +80,7 @@ class TestExamplePlugin:
                 "Expected bot to reply 'hello channel!', but found no such message!"
             )
 
-    def test_hello_ephemeral(self, driver):
+    def test_hello_ephemeral(self, start_bot, driver):
         """Unfortunately ephemeral posts do not show up through the thread API, so we
         cannot check if an ephemeral reply was sent successfully.
 
@@ -90,14 +91,14 @@ class TestExamplePlugin:
         reply = expect_reply(driver, post)
         assert reply["message"] == "I do not have permission to create ephemeral posts!"
 
-    def test_react(self, driver):
+    def test_react(self, start_bot, driver):
         post_id = driver.create_post(OFF_TOPIC_ID, "@main_bot hello_react")["id"]
         time.sleep(RESPONSE_TIMEOUT)
         reactions = driver.reactions.get_reactions_of_post(post_id)
         assert len(reactions) == 1
         assert reactions[0]["emoji_name"] == "+1"
 
-    def test_file(self, driver):
+    def test_file(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "@main_bot hello_file")
         reply = expect_reply(driver, post)
         assert len(reply["metadata"]["files"]) == 1
@@ -106,7 +107,7 @@ class TestExamplePlugin:
         file = driver.files.get_file(file["id"])
         assert file.content.decode("utf-8") == "Hello from this file!"
 
-    def test_trigger_webhook(self, driver):
+    def test_trigger_webhook(self, start_bot, driver):
         original_post = driver.create_post(OFF_TOPIC_ID, "!hello_webhook")
         time.sleep(RESPONSE_TIMEOUT)
 
@@ -133,7 +134,7 @@ class TestExamplePlugin:
         assert attachment["title"] == "Title"
         assert attachment["text"] == "Attachment text here..."
 
-    def test_info(self, driver):
+    def test_info(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "!info")
         user_info = driver.get_user_info(driver.user_id)
 
@@ -150,6 +151,6 @@ class TestExamplePlugin:
         assert reply["mentions"] == "[]"
         assert reply["message"] == "!info"
 
-    def test_ping(self, driver):
+    def test_ping(self, start_bot, driver):
         post = driver.create_post(OFF_TOPIC_ID, "@main_bot ping")
         assert expect_reply(driver, post)["message"] == "pong"

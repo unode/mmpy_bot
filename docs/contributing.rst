@@ -91,16 +91,17 @@ in `tests/integration_tests/test_example_plugin.py`):
 
     .. code-block:: python
 
-        from tests.integration_tests.utils import start_bot  # noqa, only imported so that the bot is started
         from tests.integration_tests.utils import MAIN_BOT_ID, OFF_TOPIC_ID, RESPONSE_TIMEOUT, TEAM_ID
         from tests.integration_tests.utils import driver as driver_fixture
         from tests.integration_tests.utils import expect_reply
+        from tests.integration_tests.utils import start_bot as start_bot_fixture
 
         # Hacky workaround to import the fixture without linting errors
         driver = driver_fixture
+        start_bot = start_bot_fixture
 
         # Verifies that the bot is running and listening to this non-targeted message
-        def test_start(driver):
+        def test_start(start_bot, driver):
             post = driver.create_post(OFF_TOPIC_ID, "starting integration tests!")
             # Checks whether the bot has sent us the expected reply
             assert expect_reply(driver, post)["message"] == "Bring it on!"
