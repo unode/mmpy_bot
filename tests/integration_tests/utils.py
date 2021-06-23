@@ -46,7 +46,7 @@ class TestPlugin(Plugin):
         self.driver.reply_to(message, "Bring it on!")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def driver():
     return Bot(
         settings=Settings(
@@ -63,14 +63,22 @@ def driver():
 
 
 # At the start of the pytest session, the bot is started
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module")
 def start_bot(request):
+    return parameterize_bot(request)
+
+
+def parameterize_bot(request, plugins=None):
     lock = FileLock("./bot.lock")
 
     try:
         # We want to run the tests in multiple parallel processes, but launch at most
         # a single bot.
         lock.acquire(timeout=0.01)
+
+        if plugins is None:
+            plugins = [TestPlugin(), ExamplePlugin(), WebHookExample()]
+
         bot = Bot(
             settings=Settings(
                 MATTERMOST_URL="http://127.0.0.1",
@@ -81,7 +89,7 @@ def start_bot(request):
                 WEBHOOK_HOST_URL="http://127.0.0.1",
                 WEBHOOK_HOST_PORT=8579,
             ),
-            plugins=[TestPlugin(), ExamplePlugin(), WebHookExample()],
+            plugins=plugins,
         )
 
         def run_bot():
