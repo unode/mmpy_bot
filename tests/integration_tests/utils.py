@@ -46,28 +46,6 @@ class TestPlugin(Plugin):
         self.driver.reply_to(message, "Bring it on!")
 
 
-@pytest.fixture(scope="module")
-def driver():
-    return Bot(
-        settings=Settings(
-            MATTERMOST_URL="http://127.0.0.1",
-            BOT_TOKEN="7arqwr6kzibc58zomct9ndfk1e",
-            MATTERMOST_PORT=8065,
-            SSL_VERIFY=False,
-            WEBHOOK_HOST_ENABLED=True,
-            WEBHOOK_HOST_URL="http://127.0.0.1",
-            WEBHOOK_HOST_PORT=8579,
-        ),
-        plugins=[],  # We only use this to send messages, not to reply to anything.
-    ).driver
-
-
-# At the start of the pytest session, the bot is started
-@pytest.fixture(scope="module")
-def start_bot(request):
-    return parameterize_bot(request)
-
-
 def parameterize_bot(request, plugins=None):
     lock = FileLock("./bot.lock")
 
@@ -114,3 +92,25 @@ def parameterize_bot(request, plugins=None):
 
     finally:
         time.sleep(5)  # Give the bot some time to start up
+
+
+# At the start of the pytest session, the bot is started
+@pytest.fixture(scope="module")
+def start_bot(request):
+    return parameterize_bot(request)
+
+
+@pytest.fixture(scope="module")
+def driver():
+    return Bot(
+        settings=Settings(
+            MATTERMOST_URL="http://127.0.0.1",
+            BOT_TOKEN="7arqwr6kzibc58zomct9ndfk1e",
+            MATTERMOST_PORT=8065,
+            SSL_VERIFY=False,
+            WEBHOOK_HOST_ENABLED=True,
+            WEBHOOK_HOST_URL="http://127.0.0.1",
+            WEBHOOK_HOST_PORT=8579,
+        ),
+        plugins=[],  # We only use this to send messages, not to reply to anything.
+    ).driver
