@@ -67,9 +67,9 @@ def test_start_direct(start_bot, driver):
     else:
         raise ValueError("Couldn't find a direct channel between user and bot")
 
-    posts = driver.posts.get_posts_for_channel(channel["id"])
-
     for _ in range(retries):
+        posts = driver.posts.get_posts_for_channel(channel["id"])
+
         for post in posts["posts"].values():
             if post["message"] == reply:
                 return
