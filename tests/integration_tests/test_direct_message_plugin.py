@@ -52,7 +52,7 @@ def test_start_direct(start_bot, driver):
 
     # We need to wait for the reply to be processed by mattermost
     # and the private channel created
-    retries = 2
+    retries = 4
 
     for _ in range(retries):
         if len(channels) != 1:
