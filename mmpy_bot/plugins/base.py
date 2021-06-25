@@ -107,11 +107,14 @@ class HelpPlugin(Plugin):
                 rec.pattern.lstrip("^[(-"),
             )
 
+        help_function_info = sorted(self.get_help(message), key=custom_sort)
+
         string = "### The following functions have been registered:\n\n"
         string += "###### `(*)` require the use of `@botname`, "
         string += "`(+)` can only be used in direct message\n"
         old_category = None
-        for h in sorted(self.plugin_manager.get_help(), key=custom_sort):
+
+        for h in help_function_info:
             # If categories are defined, group functions accordingly
             category = h.metadata.get("category")
             if category != old_category:
@@ -134,6 +137,14 @@ class HelpPlugin(Plugin):
                     string += f"- `{cmd}` {direct} {mention} - {h.function_docheader}\n"
 
         return string
+
+    def get_help(self, message: Message):
+        """Obtain Help info from PluginManager.
+
+        Override this method if you need to customize which listeners will be included
+        in the help.
+        """
+        return self.plugin_manager.get_help()
 
     @listen_to("^help$", needs_mention=True)
     async def help(self, message: Message):
