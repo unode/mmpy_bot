@@ -176,16 +176,27 @@ Custom help messages
 `mmpy_bot` defaults to responding to `@botname help` or `help` in a direct
 message if the `HelpPlugin` is enabled. If you wish to customize the way help
 is displayed you can subclass `HelpPlugin` and override `get_help_string`.
+If instead you want to customize which help functions are displayed but
+not the format of the help text you can override `get_help`.
 To access information about active plugins call `self.plugin_manager.get_help()`
-which will return `FunctionInfo` instances.
+which will return `FunctionInfo` instances. See below for an example.
 
 .. code-block:: python
 
     from mmpy_bot.plugins import HelpPlugin
 
-    class MyHelpPlugin(HelpPlugin):
-        def get_help_string(self):
-            list_of_help_info = self.plugin_manager.get_help()
+    class MyAdminOnlyHelpPlugin(HelpPlugin):
+        def get_help(self, message):
+            """Show admin plugins only to admin_user."""
+            function_info = super().get_help(message)
+
+            if message.sender_name != "admin_user":
+                return [x for x in function_info if x.metadata.get("category") != "admin"]
+            else:
+                return function_info
+
+        def get_help_string(self, message):
+            list_of_help_info = self.get_help(message)
             return f"This is all the help I can share {list_of_help_info}"
 
 `FunctionInfo` provides the following attributes:
