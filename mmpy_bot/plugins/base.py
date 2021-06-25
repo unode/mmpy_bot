@@ -99,7 +99,7 @@ class HelpPlugin(Plugin):
         if self.settings.RESPOND_CHANNEL_HELP:
             self.help = listen_to("^!help$")(self.help)
 
-    def get_help_string(self) -> str:
+    def get_help_string(self, message: Message) -> str:
         def custom_sort(rec):
             return (
                 rec.metadata.get("category", ""),  # No categories first
@@ -138,7 +138,9 @@ class HelpPlugin(Plugin):
     @listen_to("^help$", needs_mention=True)
     async def help(self, message: Message):
         """Shows this help information."""
-        self.driver.reply_to(message, self.get_help_string(), direct=self.direct_help)
+        self.driver.reply_to(
+            message, self.get_help_string(message), direct=self.direct_help
+        )
 
 
 @dataclass
