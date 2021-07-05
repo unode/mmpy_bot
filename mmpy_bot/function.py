@@ -35,7 +35,7 @@ class Function(ABC):
             self.siblings.append(function)
             function = function.function
 
-        self.function: Union[Callable, Function] = function
+        self.function = function
         self.is_coroutine = asyncio.iscoroutinefunction(function)
         self.is_click_function: bool = False
         self.matcher = matcher
